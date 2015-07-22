@@ -41,12 +41,12 @@ import csv
 import datetime
 import re
 
-username = 'YOURS'
-password = 'YOURS'
-client_id = 'YOURS'
-client_secret = 'YOURS'
-fromFormat = datetime.datetime(2015, 05, 20, 0, 0, 0) # Format YY-MM-DD HH:MM:SS
-toFormat = datetime.datetime(2015, 05, 22, 0 , 0, 0) # Format YY-MM-DD HH:MM:SS
+username = 'parrottest.fpwebservice@gmail.com'
+password = 'Parrot2015FP'
+client_id = 'parrottest.fpwebservice@gmail.com'
+client_secret = 'cvSjfnONllkHLymF2gEUL73PPXJiMMcVCd1VtZaIXHSGyhaT'
+fromFormat = datetime.datetime(2015, 06, 01, 0, 0, 0) # Format YY-MM-DD HH:MM:SS
+toFormat = datetime.datetime(2015, 07, 14, 0 , 0, 0) # Format YY-MM-DD HH:MM:SS
 toFormatBase = toFormat
 
 req = requests.get('https://apiflowerpower.parrot.com/user/v1/authenticate',
@@ -76,7 +76,7 @@ numberOfWeeks = 0
 seven_days = datetime.timedelta(days=7)
 
 if (toFormat - fromFormat) > seven_days:
-    regex = re.compile('[0-9]+') 
+    regex = re.compile('[0-9]+')
     numberOfWeeks = int((int(regex.search(str(toFormat - fromFormat)).group(0)))/7)
     for loop1 in range(0, numberOfWeeks + 1):
         if loop1 > 0:
@@ -87,12 +87,12 @@ if (toFormat - fromFormat) > seven_days:
                 fromFormat = (fromFormat + seven_days)
                 toFormat = (fromFormat + seven_days)
         else:
-            toFormat = (fromFormat + seven_days)   
+            toFormat = (fromFormat + seven_days)
 
-        for loop2 in range(0,len(deco["locations"])):
+        for loop2 in range(0,len(deco["sensors"])):
             location_identifier = deco["locations"][loop2]["location_identifier"]
             sensor_serial = deco["locations"][loop2]["sensor_serial"]
-            req = requests.get('https://apiflowerpower.parrot.com/sensor_data/v2/sample/location/' + location_identifier, 
+            req = requests.get('https://apiflowerpower.parrot.com/sensor_data/v2/sample/location/' + location_identifier,
                             headers={'Authorization': 'Bearer ' + access_token},
                             params={'from_datetime_utc': fromFormat,
                                     'to_datetime_utc': toFormat})
@@ -100,27 +100,27 @@ if (toFormat - fromFormat) > seven_days:
             response2 = req.json()
             decoded2 = json.dumps(response2)
             deco2 = json.loads(decoded2)
-            
-            print("Retrieving samples for sensor " + sensor_serial + " Week " + str(loop1))
-            
-            c = csv.writer(open(sensor_serial + ".csv", "a"))
-            
-            if loop1 == 0:
-                c.writerow(["capture_ts","par_umole_m2s","vwc_percent","air_temperature_celsius"])
-    
-            for loop3 in range(0,len(deco2["samples"])):
-                tmp = deco2["samples"][loop3]["capture_ts"].replace("T", " ")
-                date = tmp.replace("Z"," ")
-                c.writerow([date + " UTC",deco2["samples"][loop3]["par_umole_m2s"],deco2["samples"][loop3]["vwc_percent"],deco2["samples"][loop3]["air_temperature_celsius"]])
-                loop3 = loop3 + 1 
+            if str(sensor_serial) != "None":
+            	print("Retrieving samples for sensor " + sensor_serial + " Week " + str(loop1))
+
+            	c = csv.writer(open(sensor_serial + ".csv", "a"))
+
+            	if loop1 == 0:
+                	c.writerow(["capture_ts","par_umole_m2s","vwc_percent","air_temperature_celsius"])
+
+            	for loop3 in range(0,len(deco2["samples"])):
+                	tmp = deco2["samples"][loop3]["capture_ts"].replace("T", " ")
+                	date = tmp.replace("Z"," ")
+                	c.writerow([date + " UTC",deco2["samples"][loop3]["par_umole_m2s"],deco2["samples"][loop3]["vwc_percent"],deco2["samples"][loop3]["air_temperature_celsius"]])
+                	loop3 = loop3 + 1
             loop2 = loop2 + 1
-    loop3 = loop3 + 1
-        
+    loop1 = loop1 + 1
+
 else:
     for loop2 in range(0,len(deco["locations"])):
         location_identifier = deco["locations"][loop2]["location_identifier"]
         sensor_serial = deco["locations"][loop2]["sensor_serial"]
-        req = requests.get('https://apiflowerpower.parrot.com/sensor_data/v2/sample/location/' + location_identifier, 
+        req = requests.get('https://apiflowerpower.parrot.com/sensor_data/v2/sample/location/' + location_identifier,
                         headers={'Authorization': 'Bearer ' + access_token},
                         params={'from_datetime_utc': fromFormat,
                                 'to_datetime_utc': toFormat})
@@ -128,18 +128,18 @@ else:
         response2 = req.json()
         decoded2 = json.dumps(response2)
         deco2 = json.loads(decoded2)
-        
+
         print("Retrieving samples for sensor " + sensor_serial + "\n")
-        
+
         c = csv.writer(open(sensor_serial + ".csv", "w"))
-            
+
         c.writerow(["capture_ts","par_umole_m2s","vwc_percent","air_temperature_celsius"])
-    
+
         for loop3 in range(0,len(deco2["samples"])):
             tmp = deco2["samples"][loop3]["capture_ts"].replace("T", " ")
             date = tmp.replace("Z"," ")
             c.writerow([date + " UTC",deco2["samples"][loop3]["par_umole_m2s"],deco2["samples"][loop3]["vwc_percent"],deco2["samples"][loop3]["air_temperature_celsius"]])
             loop3 = loop3 + 1
         loop2 = loop2 + 1
-        
+
 print("\nDone retrieving samples and filling CSV files\n")
