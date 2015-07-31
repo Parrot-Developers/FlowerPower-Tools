@@ -22,13 +22,12 @@ var passPhrase   = '';
 
 var api = '';
 
-var a = 0;
-var g = 0;
-var b = 0;
-var v = 0;
+var loop1 = 0;
+var loop2 = 0;
+var loop3 = 0;
 
 var startIdx = 0;
-var NbrEntrees = 0;
+var NbrEntries = 0;
 var lastEntry = 0;
 
 var firstPartUuid = 7;
@@ -94,12 +93,12 @@ async.series([
 
   function(callback) {
     function discoUuid(){
-     if (a === tabSensors.length) {	
+     if (loop1 === tabSensors.length) {	
       callback();
      }
 
      else {
-       v = 0;
+       loop3 = 0;
        var uuid1 = tabSensors[a].toLowerCase();
        var res = uuid1.split(""); 
 
@@ -110,7 +109,7 @@ async.series([
          uuid += res[t];
        }
        uuidTab.push(uuid);
-       a = a + 1;
+       loop1 = loop1 + 1;
        uuid = "";
        discoUuid();				
      }	
@@ -120,7 +119,7 @@ async.series([
 
   function(callback) {
     var timeout;
-    a = 0;
+    loop1 = 0;
     FlowerPower.discoverAll(function onDiscover(flowerPower) {
       clearTimeout(timeout);
       console.log(flowerPower.uuid)
@@ -136,7 +135,7 @@ async.series([
          console.log("SLICE")
        }        
      }
-     a = a + 1
+     loop1 = loop1 + 1
    });		
   },	
 
@@ -144,7 +143,7 @@ async.series([
     function analyser(i) {
      if(i < tab.length) {
       if(tab[i] == 1) {
-       b ++;
+       loop2 ++;
        analyser(b);
      }
      else{
@@ -168,7 +167,7 @@ async.series([
       function(callback) {
         console.log('getHistoryNbEntries');
         tab[i].getHistoryNbEntries(function(data) {
-         NbrEntrees = data;
+         NbrEntries = data;
          callback();
        });
       }, 
@@ -226,7 +225,7 @@ async.series([
             console.log("All samples already uploaded");
 	    console.log('disconnect');
             tab[i].disconnect(callback);
-            b ++;
+            loop2 ++;
             analyser(b);
         }
         else {    
@@ -248,7 +247,7 @@ async.series([
          api.uploadGarden(tabSensors[i], user_config_version1, sUpTime, historic, currentID, sessionPeriod, sessionStartIndex, function(err) {
             	console.log('disconnect');
      		    tab[i].disconnect(callback);
-		        b ++;
+		        loop2 ++;
       		    analyser(b);
          });
       },
