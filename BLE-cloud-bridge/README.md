@@ -72,7 +72,7 @@ git clone https://github.com/Parrot-Developers/node-flower-power-cloud.git
 	sudo crontab -e 
 	Then you can edit the crontab of your raspberry. Edit it by writing in it 
 	*/30 * * * * cd PATH_TO_BLE-cloud-bridge && sudo sh scriptForCrontab.sh >> results.log
-	What we do here is to launch the scritpForCrontab script that will actually launch the 	program every 30 minutes. 
+	What we do here is we launch the scritpForCrontab script which will actually launch the program every 30 minutes. 
 
 
 Now that everything is setup, you can check your sensors' data, updated automatically every 30 minutes at https://myflowerpower.parrot.com/
