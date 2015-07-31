@@ -144,7 +144,7 @@ async.series([
      if(i < tab.length) {
       if(tab[i] == 1) {
        loop2 ++;
-       analyser(b);
+       analyser(loop2);
      }
      else{
       async.series([
@@ -226,7 +226,7 @@ async.series([
 	    console.log('disconnect');
             tab[i].disconnect(callback);
             loop2 ++;
-            analyser(b);
+            analyser(loop2);
         }
         else {    
           tab[i].getHistory(startIdx, function(error, history) {
@@ -248,7 +248,7 @@ async.series([
             	console.log('disconnect');
      		    tab[i].disconnect(callback);
 		        loop2 ++;
-      		    analyser(b);
+      		    analyser(loop2);
          });
       },
     ]);
@@ -258,6 +258,6 @@ async.series([
    process.exit(0);
   }		
 }
-analyser(b);
+analyser(loop2);
 }
 ]);
