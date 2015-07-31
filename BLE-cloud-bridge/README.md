@@ -66,7 +66,7 @@ git clone https://github.com/Parrot-Developers/node-flower-power-cloud.git
 
 - Before testing the program, you need to edit params.txt with your own credentials, be careful, the order is very important.
 
-- After everything is installed, you can try the program by placing yourself into the node_modules/flower-power folder and by doing a sudo node test.js
+- After everything is installed, you can try the program by placing yourself into the PATH_TO_BLE-cloud-bridge folder and by doing a sudo node app.js
 
 - You have now an up and running program, but the purpose of it is to work in an autonomous way. For that, we just need to use the crontab to start the program automatically every 30 minutes for example. Do as following :
 	sudo crontab -e 
