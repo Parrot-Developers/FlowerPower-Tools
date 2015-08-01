@@ -1,7 +1,7 @@
 var async = require('async');
 var CloudAPI = require('node-flower-power-cloud');
 var Noble = require ('noble');
-var FlowerPower = require('./index');
+var FlowerPower = require('node-flower-power');
 var fs = require('fs');
 var lazy = require("lazy");
 var asyncFunction = require("sync");
@@ -50,10 +50,10 @@ async.series([
     .lines
     .forEach(function(line){
       param.push(line.toString());
-      p = p + 1;  
+      p = p + 1;
       if (p == 4) {
         callback();
-      }  
+      }
     }
     );
 
@@ -68,8 +68,8 @@ async.series([
     console.log(clientSecret);
     console.log(userName);
     console.log(passPhrase);
-    
-    api = new CloudAPI.CloudAPI({ clientID: clientID, clientSecret: clientSecret });   
+
+    api = new CloudAPI.CloudAPI({ clientID: clientID, clientSecret: clientSecret });
 
     callback();
   },
@@ -93,14 +93,14 @@ async.series([
 
   function(callback) {
     function discoUuid(){
-     if (loop1 === tabSensors.length) {	
+     if (loop1 === tabSensors.length) {
       callback();
      }
 
      else {
        loop3 = 0;
        var uuid1 = tabSensors[a].toLowerCase();
-       var res = uuid1.split(""); 
+       var res = uuid1.split("");
 
        for(t = 0; t < firstPartUuid; t++){
          uuid += res[t];
@@ -111,8 +111,8 @@ async.series([
        uuidTab.push(uuid);
        loop1 = loop1 + 1;
        uuid = "";
-       discoUuid();				
-     }	
+       discoUuid();
+     }
     };
    discoUuid();
   },
@@ -133,11 +133,11 @@ async.series([
        if(uuidTab[i] === flowerPower.uuid) {
          tab.splice(i,0,flowerPower);
          console.log("SLICE")
-       }        
+       }
      }
      loop1 = loop1 + 1
-   });		
-  },	
+   });
+  },
 
   function(callback) {
     function analyser(i) {
@@ -150,8 +150,8 @@ async.series([
       async.series([
        function(callback) {
          tab[i].on('disconnect', function() {
-          console.log('disconnected!'); 
-          callback();   						
+          console.log('disconnected!');
+          callback();
         });
          console.log('connectAndSetup' + tab[i]);
          tab[i].connectAndSetup(callback);
@@ -170,11 +170,11 @@ async.series([
          NbrEntries = data;
          callback();
        });
-      }, 
+      },
 
       function(callback) {
         console.log('getHistoryLastEntryIdx');
-        tab[i].getHistoryLastEntryIdx(function(data) {							    
+        tab[i].getHistoryLastEntryIdx(function(data) {
          lastEntry = data;
          startIdx = tabIndex[i];
          callback();
@@ -187,7 +187,7 @@ async.series([
          currentID = data;
          callback();
        });
-      }, 
+      },
 
       function(callback) {
         console.log('getHistoryCurrentSessionStartIdx');
@@ -195,7 +195,7 @@ async.series([
          sessionStartIndex = data;
          callback();
        });
-      }, 
+      },
 
       function(callback) {
         console.log('getHistoryCurrentSessionPeriod');
@@ -203,7 +203,7 @@ async.series([
          sessionPeriod = data;
          callback();
        });
-      }, 
+      },
 
       function(callback) {
         console.log('getStartUpTime');
@@ -213,7 +213,7 @@ async.series([
        });
       },
 
-      function(callback) { 
+      function(callback) {
         console.log('getHistory ' + startIdx);
         if (startIdx == null || (lastEntry - startIdx) > maxIndexRecovery || (startIdx - lastEntry) > 1) {
           startIdx = lastEntry - defaultIndexRecovery;
@@ -228,21 +228,21 @@ async.series([
             loop2 ++;
             analyser(loop2);
         }
-        else {    
+        else {
           tab[i].getHistory(startIdx, function(error, history) {
             historic = history;
 	    callback();
           });
-        }   
-      }, 
+        }
+      },
 
       function (callback) {
         fs.appendFile(tab[i].uuid+'.txt', historic, function (err) {
          if (err) throw err;
          callback();
-       });					
+       });
       },
-        
+
       function (callback) {
          api.uploadGarden(tabSensors[i], user_config_version1, sUpTime, historic, currentID, sessionPeriod, sessionStartIndex, function(err) {
             	console.log('disconnect');
@@ -256,7 +256,7 @@ async.series([
  }
  else {
    process.exit(0);
-  }		
+  }
 }
 analyser(loop2);
 }
