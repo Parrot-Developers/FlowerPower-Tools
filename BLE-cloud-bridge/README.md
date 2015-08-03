@@ -57,33 +57,26 @@ After that, we need to install npm, we need it to install the program dependenci
 	Do the following commands :
 			
 		npm install async@1.0.0
-		npm install debug
-		npm install fs
-		npm install lazy
-		npm install noble
-		npm install node-uuid
-		npm install request
-		npm install sync
+		npm install debug@2.2.0
+		npm install fs@0.0.2
+		npm install lazy@1.0.11
+		npm install noble@1.0.2
+		npm install node-uuid@1.4.3
+		npm install request@2.60.0
+		npm install sync@0.2.5
 		npm install noble-device@0.1.2
-		git clone https://github.com/Parrot-Developers/FlowerPower-Tools.git
 		cd node_modules
 		git clone https://github.com/Parrot-Developers/node-flower-power.git -b BLE-cloud-bridge 
-		git clone https://github.com/Parrot-Developers/node-flower-power-cloud.git
+		git clone https://github.com/Parrot-Developers/node-flower-power-cloud.git -b BLE-cloud-bridge
+		cd ..
+		git clone https://github.com/Parrot-Developers/FlowerPower-Tools.git -b BLE-cloud-bridge
+		cd FlowerPower-Tools/BLE-cloud-bridge
 
-    Tested with the following versions : 
-    async@1.0.0
-    debug@2.2.0
-    fs@0.0.2
-    lazy1.0.11
-    noble@1.0.2
-    node-uuid@1.4.3
-    request@2.60.0
-    sync@0.2.5
-    noble-device@0.1.2
+- Before testing the program, you need to edit *params.txt* with your own credentials, be careful, **order is very important !**
 
-- Before testing the program, you need to edit params.txt with your own credentials, be careful, the order is very important.
+- After everything is installed, you can try the program : 
 
-- After everything is installed, you can try the program by placing yourself into the PATH_TO_BLE-cloud-bridge folder and by doing a sudo node app.js
+		sudo node app.js
 
 - You have now an up and running program, but the purpose of it is to work in an autonomous way. For that, we just need to use the crontab to start the program automatically every 30 minutes for example. Do as following :
 	sudo crontab -e 
