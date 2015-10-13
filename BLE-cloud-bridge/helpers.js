@@ -9,7 +9,6 @@ emitter.on('process', function(uuid, proc) {
   var messColor = {
     'Connected': clc.green('Connected'),
     'No update required': clc.yellow('No update required'),
-    'Don\'t need to be upload': clc.yellow('Don\'t need to be upload'),
     'Updated': clc.green.bold('Updated'),
     'none': clc.xterm(238)('none'),
     'Not Found': clc.red.bold('Not Found'),

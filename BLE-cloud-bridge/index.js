@@ -98,7 +98,7 @@ function discoverAllFlowerPowers() {
         }
         else if (flowerPower._peripheral.state == 'disconnected') {
           task.state = 'uploaded';
-          helpers.proc(flowerPower.uuid, "Don't need to be upload");
+          helpers.proc(flowerPower.uuid, "No update required");
           helpers.iDontUseTheDevice(flowerPower, callback);
         }
         else if (flowerPower._peripheral.state == 'connecting') {
