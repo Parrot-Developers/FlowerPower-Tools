@@ -1,7 +1,6 @@
 var CloudAPI = require('./node-flower-power-cloud/flower-power-cloud').CloudAPI;
 var FlowerPower = require('./node-flower-power/index');
 var helpers = require('./helpers');
-var comBle = require('./comBle');
 
 var async = require('async');
 var clc = require('cli-color');
@@ -94,7 +93,7 @@ function discoverAllFlowerPowers() {
           helpers.proc(flowerPower.uuid, 'Available');
           flowerPower._peripheral.on('disconnect', function() { helpers.proc(flowerPower.uuid, 'Disconnected'); callback();});
           flowerPower._peripheral.on('connect', function() { helpers.proc(flowerPower.uuid, 'Connected');});
-          comBle.retrieveSamples(flowerPower, dataCloud, API);
+          retrieveSamples(flowerPower);
           task.state = 'running';
         }
         else if (flowerPower._peripheral.state == 'disconnected') {
@@ -117,6 +116,47 @@ function discoverAllFlowerPowers() {
         helpers.iDontUseTheDevice(device);
       }
     }
+
+    function retrieveSamples(flowerPower) {
+      getInformationsFlowerPower(flowerPower, function(err, dataBLE) {
+        if (!err) {
+          delete dataBLE.connected;
+          dataBLE.uuid = flowerPower.uuid;
+          sendSamples(flowerPower, dataBLE, finishUpdate);
+        }
+        else {
+          helpers.logTime('Error: retrieveSamples()');
+          flowerPower.disconnect(function(err) {});
+        }
+      });
+    }
+
+    function sendSamples(flowerPower, dataBLE, callback) {
+      var firstEntryIndex = dataBLE.history_last_entry_index - dataBLE.history_nb_entries + 1;
+      var startIndex = ((dataCloud.sensors[helpers.uuidPeripheralToCloud(flowerPower.uuid)].current_history_index >= firstEntryIndex) ? dataCloud.sensors[helpers.uuidPeripheralToCloud(flowerPower.uuid)].current_history_index : firstEntryIndex);
+
+      if (startIndex > dataBLE.history_last_entry_index) {
+        helpers.proc(flowerPower.uuid, 'No update required');
+        callback(flowerPower);
+      }
+      else {
+        helpers.proc(flowerPower.uuid, 'Start getting samples');
+        flowerPower.getHistory(startIndex, function(error, history) {
+          dataBLE.buffer_base64 = history;
+          var param = helpers.makeParam(flowerPower, dataBLE, dataCloud);
+          API.sendSamples(param, function(error, buffer) {
+            callback(flowerPower, error, buffer);
+          });
+        });
+      }
+    }
+
+    function finishUpdate(flowerPower, err, buffer) {
+      if (err) helpers.proc(flowerPower.uuid, 'Error send History');
+      else if (buffer) helpers.proc(flowerPower.uuid, 'Updated');
+      flowerPower.disconnect(function(err) {});
+    }
+
   }, 1);
 
   q.drain = function() {
@@ -137,5 +177,35 @@ function discoverAllFlowerPowers() {
   }
   helpers.proc();
 }
+
+
+function getInformationsFlowerPower(flowerPower, callback) {
+  async.series({
+    connected: function(callback) {
+      flowerPower.connectAndSetup(callback);
+    },
+    history_nb_entries: function(callback) {
+      flowerPower.getHistoryNbEntries(callback);
+    },
+    history_last_entry_index: function(callback) {
+      flowerPower.getHistoryLastEntryIdx(callback);
+    },
+    history_current_session_id: function(callback) {
+      flowerPower.getHistoryCurrentSessionID(callback);
+    },
+    history_current_session_start_index: function(callback) {
+      flowerPower.getHistoryCurrentSessionStartIdx(callback);
+    },
+    history_current_session_period: function(callback) {
+      flowerPower.getHistoryCurrentSessionPeriod(callback);
+    },
+    start_up_time: function(callback) {
+      flowerPower.getStartupTime(callback);
+    },
+  }, function(err, dataBLE) {
+    callback(err, dataBLE);
+  });
+}
+
 
 exports.start = start;

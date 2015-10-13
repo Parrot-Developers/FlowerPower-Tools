@@ -72,10 +72,41 @@ function iDontUseTheDevice(device, callback) {
   }
 }
 
+function makeParam(flowerPower, dataBLE, dataCloud) {
+  var results = {};
+
+  var session = {};
+  var uploads = {};
+
+  results["tmz_offset"] = dataCloud.userConfig.user_profile.tmz_offset
+  results["client_datetime_utc"] = new Date().toISOString();
+  results["user_config_version"] = dataCloud.userConfig.user_config_version;
+
+  session["sensor_serial"] = uuidPeripheralToCloud(flowerPower.uuid);
+  session["sensor_startup_timestamp_utc"] = dataBLE.start_up_time;
+  session["session_id"] = dataBLE.history_current_session_id;
+  session["session_start_index"] = dataBLE.history_current_session_start_index;
+  session["sample_measure_period"] = dataBLE.history_current_session_period;
+
+  uploads["sensor_serial"] = uuidPeripheralToCloud(flowerPower.uuid);
+  uploads["upload_timestamp_utc"] = new Date().toISOString();
+  uploads["buffer_base64"] = dataBLE.buffer_base64;
+  uploads["app_version"] = "";
+  uploads["sensor_fw_version"] = "";
+  uploads["sensor_hw_identifier"] ="";
+
+  results["session_histories"] = [session];
+  results["uploads"] = [uploads];
+
+
+  return results;
+}
+
 exports.fp = fp;
 exports.proc = proc;
 exports.emitter = emitter;
 exports.logTime = logTime;
+exports.makeParam = makeParam;
 exports.iDontUseTheDevice = iDontUseTheDevice;
 exports.uuidPeripheralToCloud = uuidPeripheralToCloud;
 exports.uuidCloudToPeripheral = uuidCloudToPeripheral;
