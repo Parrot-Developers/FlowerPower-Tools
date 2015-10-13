@@ -1,6 +1,7 @@
 var CloudAPI = require('./node-flower-power-cloud/flower-power-cloud').CloudAPI;
 var FlowerPower = require('./node-flower-power/index');
 var helpers = require('./helpers');
+var credentials = require('./credentials');
 
 var async = require('async');
 var clc = require('cli-color');
@@ -10,9 +11,10 @@ var chance = new Chance();
 var dataCloud;
 var running = false;
 
+
 var API = new CloudAPI({
-  clientID: 'parrottest.fpwebservice@gmail.com',
-  clientSecret: 'cvSjfnONllkHLymF2gEUL73PPXJiMMcVCd1VtZaIXHSGyhaT'
+  clientID: credentials.clientID,
+  clientSecret: credentials.clientSecret
 });
 
 API.on('error', function(err) {
@@ -20,7 +22,7 @@ API.on('error', function(err) {
 });
 
 function start(delay) {
-  API.login('parrottest.fpwebservice@gmail.com', 'Parrot2015FP', function(err) {
+  API.login(credentials.username, credentials.passphrase, function(err) {
     if (!!err) {
       return helpers.logTime(clc.red('login error: ' + err.message));
     }
