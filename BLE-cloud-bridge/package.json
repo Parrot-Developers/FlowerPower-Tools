@@ -10,8 +10,8 @@
   "author": "Bruno Sautron",
   "license": "ISC",
   "dependencies": {
-    "async": "^1.4.2",
-    "chance": "^0.7.7",
-    "cli-color": "^1.0.0"
+    "async": "*",
+    "chance": "*",
+    "cli-color": "*"
   }
 }

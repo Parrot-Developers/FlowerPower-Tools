@@ -49,10 +49,14 @@ function logTime(flowerPower) {
   var dest = '[' + new Date().toString().substr(4, 20) + ']:';
   var argv = arguments;
   var i = 0;
+  var color = 255;
 
   var uuid = false;
   if (flowerPower instanceof FlowerPower) {
-    dest += ' ' + clc.xterm(color[flowerPower.uuid])( ((uuid) ? flowerPower.uuid : flowerPower.name) + ':');
+    if (typeof fp[flowerPower.uuid] != 'undefined') {
+      color = fp[flowerPower.uuid].color;
+    }
+    dest += ' ' + clc.xterm(color)( ((uuid) ? flowerPower.uuid : flowerPower.name) + ':');
     i++;
   }
 
