@@ -1,12 +1,7 @@
 #!/bin/bash
 # sudo apt-get install bluetooth bluez-utils libbluetooth-dev
 
-branch="master";
-
-if [ $1 = "dev" ]
-then
-	branch="dev"
-fi
+branch="v2";
 
 (git clone -b $branch https://github.com/Parrot-Developers/node-flower-power.git && cd node-flower-power && npm install)
 git clone -b $branch https://github.com/Parrot-Developers/node-flower-power-cloud.git

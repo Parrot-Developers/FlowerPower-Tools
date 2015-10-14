@@ -52,10 +52,10 @@ function run() {
 
 function getInformationsCloud(callback) {
   async.parallel({
-    sensors: function(callback) {
-      API.getGarden(function(err, locations, sensors) {
-        if (err) helpers.logTime('getGarden: ' + err.message);
-        callback(err, sensors);
+    garden: function(callback) {
+      API.getGarden(function(err, garden) {
+        if (err) logTime('getGarden: ' + err.message);
+        callback(err, garden);
       })
     },
     userConfig: function(callback) {
@@ -71,46 +71,46 @@ function getInformationsCloud(callback) {
 
 function discoverAllFlowerPowers() {
   helpers.logTime(clc.yellow('New scan'));
-  helpers.logTime(clc.bold(Object.keys(dataCloud.sensors).length), "sensors");
+  helpers.logTime(clc.bold(Object.keys(dataCloud.garden.status).length), "sensors");
 
   var q = async.queue(function(task, callback) {
     setTimeout(function() {
       if (task.state == 'standby') {
         FlowerPower.stopDiscoverAll(discover);
-        helpers.proc(task.uuid, 'Not Found');
+        helpers.proc(task.name, 'Not Found');
         callback();
       }
-    }, 20000);
+    }, 30000);
 
-    helpers.proc(task.uuid, 'Searching');
+    helpers.proc(task.name, 'Searching');
     FlowerPower.discoverAll(discover);
 
     function discover(device) {
       var flowerPower = device;
 
-      if (flowerPower.uuid == task.uuid) {
+      if (flowerPower.name == task.name) {
         FlowerPower.stopDiscoverAll(discover);
 
         if (flowerPower._peripheral.state == 'disconnected' && flowerPower.flags.hasEntry) {
-          helpers.proc(flowerPower.uuid, 'Available');
-          flowerPower._peripheral.on('disconnect', function() { helpers.proc(flowerPower.uuid, 'Disconnected'); callback();});
-          flowerPower._peripheral.on('connect', function() { helpers.proc(flowerPower.uuid, 'Connected');});
+          helpers.proc(flowerPower.name, 'Available');
+          flowerPower._peripheral.on('disconnect', function() { helpers.proc(flowerPower.name, 'Disconnected'); callback();});
+          flowerPower._peripheral.on('connect', function() { helpers.proc(flowerPower.name, 'Connected');});
           retrieveSamples(flowerPower);
           task.state = 'running';
         }
         else if (flowerPower._peripheral.state == 'disconnected') {
           task.state = 'uploaded';
-          helpers.proc(flowerPower.uuid, "No update required");
+          helpers.proc(flowerPower.name, "No update required");
           helpers.iDontUseTheDevice(flowerPower, callback);
         }
         else if (flowerPower._peripheral.state == 'connecting') {
           task.state = 'connect';
-          helpers.proc(flowerPower.uuid, "is on connection");
+          helpers.proc(flowerPower.name, "is on connection");
           helpers.iDontUseTheDevice(flowerPower, callback);
         }
         else {
           task.state = 'not available';
-          helpers.proc(flowerPower.uuid, 'is not available: ' + flowerPower._peripheral.state);
+          helpers.proc(flowerPower.name, 'is not available: ' + flowerPower._peripheral.state);
           helpers.iDontUseTheDevice(flowerPower, callback);
         }
       }
@@ -122,8 +122,6 @@ function discoverAllFlowerPowers() {
     function retrieveSamples(flowerPower) {
       getInformationsFlowerPower(flowerPower, function(err, dataBLE) {
         if (!err) {
-          delete dataBLE.connected;
-          dataBLE.uuid = flowerPower.uuid;
           sendSamples(flowerPower, dataBLE, finishUpdate);
         }
         else {
@@ -135,14 +133,14 @@ function discoverAllFlowerPowers() {
 
     function sendSamples(flowerPower, dataBLE, callback) {
       var firstEntryIndex = dataBLE.history_last_entry_index - dataBLE.history_nb_entries + 1;
-      var startIndex = ((dataCloud.sensors[helpers.uuidPeripheralToCloud(flowerPower.uuid)].current_history_index >= firstEntryIndex) ? dataCloud.sensors[helpers.uuidPeripheralToCloud(flowerPower.uuid)].current_history_index : firstEntryIndex);
+      var startIndex = ((dataCloud.garden.status[flowerPower.name].sensor.current_history_index >= firstEntryIndex) ? dataCloud.garden.status[flowerPower.name].sensor.current_history_index : firstEntryIndex);
 
       if (startIndex > dataBLE.history_last_entry_index) {
-        helpers.proc(flowerPower.uuid, 'No update required');
+        helpers.proc(flowerPower.name, 'No update required');
         callback(flowerPower);
       }
       else {
-        helpers.proc(flowerPower.uuid, 'Start getting samples');
+        helpers.proc(flowerPower.name, 'Start getting samples');
         flowerPower.getHistory(startIndex, function(error, history) {
           dataBLE.buffer_base64 = history;
           var param = helpers.makeParam(flowerPower, dataBLE, dataCloud);
@@ -154,8 +152,8 @@ function discoverAllFlowerPowers() {
     }
 
     function finishUpdate(flowerPower, err, buffer) {
-      if (err) helpers.proc(flowerPower.uuid, 'Error send History');
-      else if (buffer) helpers.proc(flowerPower.uuid, 'Updated');
+      if (err) helpers.proc(flowerPower.name, 'Error send History');
+      else if (buffer) helpers.proc(flowerPower.name, 'Updated');
       flowerPower.disconnect(function(err) {});
     }
 
@@ -167,15 +165,14 @@ function discoverAllFlowerPowers() {
     firstEmit = true;
   }
 
-  for (var uuid in dataCloud.sensors) {
-    uuid = helpers.uuidCloudToPeripheral(uuid);
-    q.push({uuid: uuid, state: 'standby'});
-    if (typeof helpers.fp[uuid] == 'undefined') {
-      helpers.fp[uuid] = {};
-      helpers.fp[uuid].color = chance.natural({min: 100, max: 200});
+  for (var identifier in dataCloud.garden.status) {
+    q.push({name: identifier, state: 'standby'});
+    if (typeof helpers.fp[identifier] == 'undefined') {
+      helpers.fp[identifier] = {};
+      helpers.fp[identifier].color = chance.natural({min: 100, max: 200});
     }
-    helpers.fp[uuid].process = 'none';
-    helpers.fp[uuid].date = new Date().toString().substr(4, 20);
+    helpers.fp[identifier].process = 'None';
+    helpers.fp[identifier].date = new Date().toString().substr(4, 20);
   }
   helpers.proc();
 }

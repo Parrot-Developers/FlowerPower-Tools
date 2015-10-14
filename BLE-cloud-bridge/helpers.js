@@ -5,7 +5,7 @@ var FlowerPower = require('./node-flower-power/index');
 var emitter = new events.EventEmitter;
 var fp = {};
 
-emitter.on('process', function(uuid, proc) {
+emitter.on('process', function(name, proc) {
   var messColor = {
     'Connected': clc.green('Connected'),
     'No update required': clc.yellow('No update required'),
@@ -15,17 +15,17 @@ emitter.on('process', function(uuid, proc) {
     'Searching': clc.yellow.bold('Searching'),
   }
 
-  if (!uuid) firstEmit = false;
+  if (!name) firstEmit = false;
   else {
     if (proc == 'Disconnected') {
-      if (fp[uuid].process == 'Connected') {
-        fp[uuid].process = 'Disconnected for no reason';
+      if (fp[name].process == 'Connected') {
+        fp[name].process = '...';
       }
     }
     else {
-      fp[uuid].process = proc;
+      fp[name].process = proc;
     }
-    fp[uuid].date = new Date().toString().substr(4, 20);
+    fp[name].date = new Date().toString().substr(4, 20);
     process.stdout.write(clc.move.up(Object.keys(fp).length));
   }
   for (identifier in fp) {
@@ -81,17 +81,17 @@ function makeParam(flowerPower, dataBLE, dataCloud) {
   var session = {};
   var uploads = {};
 
-  results["tmz_offset"] = dataCloud.userConfig.user_profile.tmz_offset
   results["client_datetime_utc"] = new Date().toISOString();
   results["user_config_version"] = dataCloud.userConfig.user_config_version;
+  results["plant_science_database_identifier"] = "en_20150210_2.1";
 
-  session["sensor_serial"] = uuidPeripheralToCloud(flowerPower.uuid);
+  session["sensor_serial"] = flowerPower.name;
   session["sensor_startup_timestamp_utc"] = dataBLE.start_up_time;
   session["session_id"] = dataBLE.history_current_session_id;
   session["session_start_index"] = dataBLE.history_current_session_start_index;
   session["sample_measure_period"] = dataBLE.history_current_session_period;
 
-  uploads["sensor_serial"] = uuidPeripheralToCloud(flowerPower.uuid);
+  uploads["sensor_serial"] = flowerPower.name;
   uploads["upload_timestamp_utc"] = new Date().toISOString();
   uploads["buffer_base64"] = dataBLE.buffer_base64;
   uploads["app_version"] = "";
