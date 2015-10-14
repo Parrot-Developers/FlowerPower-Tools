@@ -1,11 +1,11 @@
 {
   "name": "Flower-Bridge",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "sudo node start.js $BLE_FP_DELAY_SCAN",
-    "test": "sudo node start.js $BLE_FP_DELAY_SCAN >debug.log 2>&1"
+    "start": "sudo node start.js $BLE_FP_DELAY_SCAN >debug.log 2>&1",
+    "test": "sudo node start.js $BLE_FP_DELAY_SCAN"
   },
   "author": "Bruno Sautron",
   "license": "ISC",
