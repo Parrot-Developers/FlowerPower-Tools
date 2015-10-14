@@ -18,7 +18,7 @@ Let's see how to make it work on a raspberry.
 ```
 	
 	
-Then do a `node –version` to check if it worked.
+Then do a `node --version` to check if it worked.
 
 Then we need to install the BLE libraries, just follow the steps at http://www.jaredwolff.com/blog/get-started-with-bluetooth-low-energy/
 
@@ -26,7 +26,7 @@ To check if it worked, just do a sudo hcitools lescan, if it shows you a list of
 
 Now, if Nodejs and BLE libraries are installed, clone this repository and do:
 ```bash
-$ ./configure dev
+$ ./configure
 ```
 
 **How to use it**
@@ -46,4 +46,4 @@ $ npm start
     * Send his history samples to the Cloud
 * End Loop
 
-The program relive a new `Loop` only of all Flower Powers have been checked.
+The program relive a new `Loop` only if all Flower Powers have been checked.
