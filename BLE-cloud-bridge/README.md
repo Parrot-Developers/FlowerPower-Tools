@@ -1,14 +1,14 @@
-# Flower Bridge
+<h1>Flower Bridge</h1>
 
 https://en.wikipedia.org/wiki/Tower_Bridge
 
-**How to install**
+<h2>How to install</h2>
 
 This program works with any BLE-equipped/BLE-dongle-equipped computers as well.
 To install it on your raspberry is really easy. You require Node (with npm) and BLE libraries.
-
-Let's see how to make it work on a raspberry.
- * First, you need a raspberry with a USB BLE dongle. This raspberry must be up and running.
+First, you need a raspberry with a USB BLE dongle. This raspberry must be up and running.
+<h3>Step 1:</h3>
+ * 
  * Then you need to install some required tools on your raspberry.
 	First, nodejs needs to be installed, proceed as following:
 ```bash
