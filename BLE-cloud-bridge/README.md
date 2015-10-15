@@ -54,7 +54,7 @@ $ ./configure
 ```
 
 <h2>How to use it</h2>
-Finaly, you can wolk on the brigde
+Finaly, you can walk on the brigde
 ```bash
 $ npm start
 ```
