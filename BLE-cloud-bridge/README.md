@@ -6,6 +6,7 @@ https://en.wikipedia.org/wiki/Tower_Bridge
 
 This program works with any BLE-equipped/BLE-dongle-equipped computers as well.
 To install it on your raspberry is really easy. You require Node (with npm) and BLE libraries.
+
 First, you need a raspberry with a USB BLE dongle. This raspberry must be up and running.
 <h3>Step 1:</h3>
  * 
