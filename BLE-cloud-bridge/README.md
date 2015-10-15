@@ -54,7 +54,18 @@ $ ./configure
 ```
 
 <h2>How to use it</h2>
-Finaly, you can walk on the brigde
+
+To communicate with your Flower Powers, edit `credentials.json`:
+```js
+{
+	"clientID": "...",
+	"clientSecret": "...",
+	"username": "...",
+	"passphrase": "..."
+}
+```
+And finaly, you can walk on the brigde.
+To start the program:
 ```bash
 $ npm start
 ```
