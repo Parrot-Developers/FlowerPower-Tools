@@ -128,7 +128,7 @@ function discoverAllFlowerPowers() {
         }
         else {
           helpers.logTime('Error: retrieveSamples()');
-          flowerPower.disconnect(function(err) {});
+          disconnectFlowerPower(flowerPower);
         }
       });
     }
@@ -156,6 +156,10 @@ function discoverAllFlowerPowers() {
     function finishUpdate(flowerPower, err, buffer) {
       if (err) helpers.proc(flowerPower.uuid, 'Error send History');
       else if (buffer) helpers.proc(flowerPower.uuid, 'Updated');
+      disconnectFlowerPower(flowerPower);
+    }
+
+    function disconnectFlowerPower(flowerPower) {
       flowerPower.disconnect(function(err) {});
     }
 
