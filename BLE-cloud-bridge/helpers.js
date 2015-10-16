@@ -10,7 +10,7 @@ emitter.on('process', function(uuid, proc) {
     'Connected': clc.green('Connected'),
     'No update required': clc.yellow('No update required'),
     'Updated': clc.green.bold('Updated'),
-    'none': clc.xterm(238)('none'),
+    'None': clc.xterm(238)('None'),
     'Not Found': clc.red.bold('Not Found'),
     'Searching': clc.yellow.bold('Searching'),
   }

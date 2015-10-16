@@ -92,7 +92,7 @@ function discoverAllFlowerPowers() {
         FlowerPower.stopDiscoverAll(discover);
 
         if (flowerPower._peripheral.state == 'disconnected' && flowerPower.flags.hasEntry) {
-          helpers.proc(flowerPower.uuid, 'Available');
+          helpers.proc(flowerPower.uuid, 'Connection');
           flowerPower._peripheral.on('disconnect', function() { helpers.proc(flowerPower.uuid, 'Disconnected'); callback();});
           flowerPower._peripheral.on('connect', function() { helpers.proc(flowerPower.uuid, 'Connected');});
           retrieveSamples(flowerPower);
@@ -142,7 +142,7 @@ function discoverAllFlowerPowers() {
         callback(flowerPower);
       }
       else {
-        helpers.proc(flowerPower.uuid, 'Start getting samples');
+        helpers.proc(flowerPower.uuid, 'Getting samples');
         flowerPower.getHistory(startIndex, function(error, history) {
           dataBLE.buffer_base64 = history;
           var param = helpers.makeParam(flowerPower, dataBLE, dataCloud);
@@ -160,7 +160,9 @@ function discoverAllFlowerPowers() {
     }
 
     function disconnectFlowerPower(flowerPower) {
-      flowerPower.disconnect(function(err) {});
+      if (flowerPower._peripheral.state == 'connected') {
+        flowerPower.disconnect(function(err) {});
+      }
     }
 
   }, 1);
@@ -178,7 +180,7 @@ function discoverAllFlowerPowers() {
       helpers.fp[uuid] = {};
       helpers.fp[uuid].color = chance.natural({min: 100, max: 200});
     }
-    helpers.fp[uuid].process = 'none';
+    helpers.fp[uuid].process = 'None';
     helpers.fp[uuid].date = new Date().toString().substr(4, 20);
   }
   helpers.proc();
