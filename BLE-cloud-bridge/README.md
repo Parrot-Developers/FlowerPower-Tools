@@ -15,15 +15,18 @@ Then you need to install some required tools on your raspberry.
 First, nodejs needs to be installed, proceed as following:
 ```bash
 $ sudo apt-get update && sudo apt-get upgrade
-$ curl -sL https://deb.nodesource.com/setup | sudo bash -
+$ curl --silent --location https://deb.nodesource.com/setup_4.x | sudo bash -
 $ sudo apt-get install nodejs
 ```
 	
 Then do a `node --version` to check if it worked.
 
 <h3>Step 2: BLE libraries</h3>
-Then we need to install the BLE libraries. Let's start to check the last version of Bluez. For me it's BlueZ 5.35.
+Then we need to install the BLE libraries. Let's start to check the last version of Bluez [here](http://www.bluez.org/). For me it's BlueZ 5.35.
 Now we can download the source.
+```bash
+$ sudo apt-get install libdbus-1-dev libdbus-glib-1-dev libglib2.0-dev libical-dev libreadline-dev libudev-dev libusb-dev glib2.0 make
+```
 ```bash
 $ wget http://www.kernel.org/pub/linux/bluetooth/bluez-5.35.tar.xz
 $ tar xvf bluez-5.35.tar.xz
