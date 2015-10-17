@@ -93,8 +93,15 @@ function discoverAllFlowerPowers() {
 
         if (flowerPower._peripheral.state == 'disconnected' && flowerPower.flags.hasEntry) {
           helpers.proc(flowerPower.uuid, 'Connection');
-          flowerPower._peripheral.on('disconnect', function() { helpers.proc(flowerPower.uuid, 'Disconnected'); callback();});
-          flowerPower._peripheral.on('connect', function() { helpers.proc(flowerPower.uuid, 'Connected');});
+          flowerPower._peripheral.on('disconnect', function() {
+						helpers.proc(flowerPower.uuid, 'Disconnected');
+						setTimeout(function() {
+							callback();
+						}, 2000);
+					});
+          flowerPower._peripheral.on('connect', function() {
+						helpers.proc(flowerPower.uuid, 'Connected');
+					});
           retrieveSamples(flowerPower);
           task.state = 'running';
         }
