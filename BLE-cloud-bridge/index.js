@@ -70,8 +70,7 @@ function getInformationsCloud(callback) {
 }
 
 function discoverAllFlowerPowers() {
-  helpers.logTime(clc.yellow('New scan'));
-  helpers.logTime(clc.bold(Object.keys(dataCloud.sensors).length), "sensors");
+  helpers.logTime(clc.yellow('New scan for', clc.bold(Object.keys(dataCloud.sensors).length), "sensors"));
 
   var q = async.queue(function(task, callback) {
     setTimeout(function() {
@@ -94,14 +93,14 @@ function discoverAllFlowerPowers() {
         if (flowerPower._peripheral.state == 'disconnected' && flowerPower.flags.hasEntry) {
           helpers.proc(flowerPower.uuid, 'Connection');
           flowerPower._peripheral.on('disconnect', function() {
-						helpers.proc(flowerPower.uuid, 'Disconnected');
-						setTimeout(function() {
-							callback();
-						}, 2000);
-					});
+            helpers.proc(flowerPower.uuid, 'Disconnected');
+            setTimeout(function() {
+             callback();
+            }, 2000);
+          });
           flowerPower._peripheral.on('connect', function() {
-						helpers.proc(flowerPower.uuid, 'Connected');
-					});
+           helpers.proc(flowerPower.uuid, 'Connected');
+          });
           retrieveSamples(flowerPower);
           task.state = 'running';
         }
@@ -129,7 +128,6 @@ function discoverAllFlowerPowers() {
     function retrieveSamples(flowerPower) {
       getInformationsFlowerPower(flowerPower, function(err, dataBLE) {
         if (!err) {
-          delete dataBLE.connected;
           dataBLE.uuid = flowerPower.uuid;
           sendSamples(flowerPower, dataBLE, finishUpdate);
         }
@@ -175,7 +173,7 @@ function discoverAllFlowerPowers() {
   }, 1);
 
   q.drain = function() {
-    helpers.logTime('All FlowerPowers have been updated, or not');
+    helpers.logTime('All FlowerPowers have been updated, or not\n');
     running = false;
     firstEmit = true;
   }
