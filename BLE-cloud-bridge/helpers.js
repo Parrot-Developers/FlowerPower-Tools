@@ -10,7 +10,7 @@ emitter.on('process', function(name, proc) {
     'Connected': clc.green('Connected'),
     'No update required': clc.yellow('No update required'),
     'Updated': clc.green.bold('Updated'),
-    'none': clc.xterm(238)('none'),
+    'None': clc.xterm(238)('None'),
     'Not Found': clc.red.bold('Not Found'),
     'Searching': clc.yellow.bold('Searching'),
   }
@@ -18,7 +18,7 @@ emitter.on('process', function(name, proc) {
   if (!name) firstEmit = false;
   else {
     if (proc == 'Disconnected') {
-      if (fp[name].process == 'Connected') {
+      if (fp[name].process != 'No update required' && fp[name].process != 'Updated') {
         fp[name].process = 'Disconnected for no reason';
       }
     }
@@ -26,7 +26,7 @@ emitter.on('process', function(name, proc) {
       fp[name].process = proc;
     }
     fp[name].date = new Date().toString().substr(4, 20);
-    process.stdout.write(clc.move.up(Object.keys(fp).length));
+   process.stdout.write(clc.move.up(Object.keys(fp).length));
   }
   for (identifier in fp) {
     process.stdout.write(clc.erase.line);
@@ -82,7 +82,7 @@ function makeParam(flowerPower, dataBLE, dataCloud) {
   var uploads = {};
 
   results["client_datetime_utc"] = new Date().toISOString();
-  results["user_config_version"] = dataCloud.userConfig.user_config_version;
+  results["user_config_version"] = dataCloud.user_config_version;
   results["plant_science_database_identifier"] = "en_20150210_2.1";
 
   session["sensor_serial"] = flowerPower.name;
@@ -105,11 +105,26 @@ function makeParam(flowerPower, dataBLE, dataCloud) {
   return results;
 }
 
+function concatJson(json1, json2) {
+	var dest = json1;
+
+	for (var key in json2) {
+		if (typeof json1[key] == 'object' && typeof json2[key] == 'object') {
+			dest[key] = concatJson(json1[key], json2[key]);
+		}
+		else {
+			dest[key] = json2[key];
+		}
+	}
+	return dest;
+}
+
 exports.fp = fp;
 exports.proc = proc;
 exports.emitter = emitter;
 exports.logTime = logTime;
 exports.makeParam = makeParam;
+exports.concatJson = concatJson;
 exports.iDontUseTheDevice = iDontUseTheDevice;
 exports.uuidPeripheralToCloud = uuidPeripheralToCloud;
 exports.uuidCloudToPeripheral = uuidCloudToPeripheral;

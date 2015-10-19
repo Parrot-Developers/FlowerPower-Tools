@@ -65,14 +65,22 @@ function getInformationsCloud(callback) {
       })
     },
   }, function(error, results) {
-    dataCloud = results;
+    var sensors = {};
+
+    dataCloud = helpers.concatJson(results.userConfig, results.garden);
+    for (var i in dataCloud.locations) {
+      if (dataCloud.locations[i].sensor) {
+        sensors[dataCloud.locations[i].sensor.sensor_identifier] = dataCloud.locations[i];
+      }
+    }
+    delete dataCloud.locations;
+    dataCloud.sensors = sensors;
     callback(error);
   });
 }
 
 function discoverAllFlowerPowers() {
-  helpers.logTime(clc.yellow('New scan'));
-  helpers.logTime(clc.bold(Object.keys(dataCloud.garden.status).length), "sensors");
+  helpers.logTime(clc.yellow('New scan for', clc.bold(Object.keys(dataCloud.sensors).length), "sensors"));
 
   var q = async.queue(function(task, callback) {
     setTimeout(function() {
@@ -141,7 +149,7 @@ function discoverAllFlowerPowers() {
 
     function sendSamples(flowerPower, dataBLE, callback) {
       var firstEntryIndex = dataBLE.history_last_entry_index - dataBLE.history_nb_entries + 1;
-      var startIndex = ((dataCloud.garden.status[flowerPower.name].sensor.current_history_index >= firstEntryIndex) ? dataCloud.garden.status[flowerPower.name].sensor.current_history_index : firstEntryIndex);
+      var startIndex = ((dataCloud.sensors[flowerPower.name].sensor.current_history_index >= firstEntryIndex) ? dataCloud.sensors[flowerPower.name].sensor.current_history_index : firstEntryIndex);
 
       if (startIndex > dataBLE.history_last_entry_index) {
         helpers.proc(flowerPower.name, 'No update required');
@@ -174,12 +182,13 @@ function discoverAllFlowerPowers() {
   }, 1);
 
   q.drain = function() {
-    helpers.logTime('All FlowerPowers have been updated, or not');
+    helpers.logTime('All FlowerPowers have been processed\n');
     running = false;
     firstEmit = true;
   }
 
-  for (var identifier in dataCloud.garden.status) {
+  for (var identifier in dataCloud.sensors) {
+
     q.push({name: identifier, state: 'standby'});
     if (typeof helpers.fp[identifier] == 'undefined') {
       helpers.fp[identifier] = {};
