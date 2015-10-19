@@ -19,7 +19,7 @@ emitter.on('process', function(name, proc) {
   else {
     if (proc == 'Disconnected') {
       if (fp[name].process == 'Connected') {
-        fp[name].process = '...';
+        fp[name].process = 'Disconnected for no reason';
       }
     }
     else {
