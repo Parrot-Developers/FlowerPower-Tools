@@ -22,24 +22,9 @@ $ sudo apt-get install nodejs
 Then do a `node --version` to check if it worked.
 
 <h3>Step 2: BLE libraries</h3>
-Then we need to install the BLE libraries. Let's start to check the last version of Bluez [here](http://www.bluez.org/). For me it's BlueZ 5.35.
-Now we can download the source.
+Then we need to install the BLE libraries:
 ```bash
-$ sudo apt-get install libdbus-1-dev libdbus-glib-1-dev libglib2.0-dev libical-dev libreadline-dev libudev-dev libusb-dev glib2.0 make
-```
-```bash
-$ wget http://www.kernel.org/pub/linux/bluetooth/bluez-5.35.tar.xz
-$ tar xvf bluez-5.35.tar.xz
-```
-If successful, build it (It't long...):
-```bash
-$ cd bluez-5.35
-$ ./configure --disable-systemd
-$ make
-```
-And when this is done:
-```bash
-$ sudo make install
+$ sudo apt-get install libdbus-1-dev libdbus-glib-1-dev libglib2.0-dev libical-dev libreadline-dev libudev-dev libusb-dev glib2.0 bluetooth bluez libbluetooth-dev make
 ```
 
 Okay now you should be able to discover peripheral around you.
@@ -48,7 +33,7 @@ The command `hciconfig` will be show your dongle (hci0). So:
 $ sudo hciconfig hci0 up
 ```
 
-To check if it worked, just do a `sudo hcitools lescan`, if it shows you a list of surrounding BLE devices – or at least your Flower Power -- it worked. If not, do a `sudo apt-get install bluez` and try again.
+To check if it worked, just do a `sudo hcitool lescan`, if it shows you a list of surrounding BLE devices – or at least your Flower Power -- it worked. If not, do a `sudo apt-get install bluez` and try again.
 
 <h3>Step 3: Build the brigde</h3>
 Now, if Nodejs and BLE libraries are installed, clone this repository and do:
