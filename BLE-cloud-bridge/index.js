@@ -14,7 +14,8 @@ var running = false;
 
 var API = new CloudAPI({
   clientID: credentials.clientID,
-  clientSecret: credentials.clientSecret
+  clientSecret: credentials.clientSecret,
+  url: credentials.url
 });
 
 API.on('error', function(err) {
@@ -92,9 +93,16 @@ function discoverAllFlowerPowers() {
         FlowerPower.stopDiscoverAll(discover);
 
         if (flowerPower._peripheral.state == 'disconnected' && flowerPower.flags.hasEntry) {
-          helpers.proc(flowerPower.name, 'Available');
-          flowerPower._peripheral.on('disconnect', function() { helpers.proc(flowerPower.name, 'Disconnected'); callback();});
-          flowerPower._peripheral.on('connect', function() { helpers.proc(flowerPower.name, 'Connected');});
+          helpers.proc(flowerPower.name, 'Connection');
+          flowerPower._peripheral.on('disconnect', function() {
+            helpers.proc(flowerPower.name, 'Disconnected');
+            setTimeout(function() {
+             callback();
+            }, 2000);
+          });
+          flowerPower._peripheral.on('connect', function() {
+           helpers.proc(flowerPower.name, 'Connected');
+          });
           retrieveSamples(flowerPower);
           task.state = 'running';
         }
@@ -126,7 +134,7 @@ function discoverAllFlowerPowers() {
         }
         else {
           helpers.logTime('Error: retrieveSamples()');
-          flowerPower.disconnect(function(err) {});
+          disconnectFlowerPower(flowerPower);
         }
       });
     }
@@ -140,7 +148,7 @@ function discoverAllFlowerPowers() {
         callback(flowerPower);
       }
       else {
-        helpers.proc(flowerPower.name, 'Start getting samples');
+        helpers.proc(flowerPower.name, 'Getting samples');
         flowerPower.getHistory(startIndex, function(error, history) {
           dataBLE.buffer_base64 = history;
           var param = helpers.makeParam(flowerPower, dataBLE, dataCloud);
@@ -154,7 +162,13 @@ function discoverAllFlowerPowers() {
     function finishUpdate(flowerPower, err, buffer) {
       if (err) helpers.proc(flowerPower.name, 'Error send History');
       else if (buffer) helpers.proc(flowerPower.name, 'Updated');
-      flowerPower.disconnect(function(err) {});
+      disconnectFlowerPower(flowerPower);
+    }
+
+    function disconnectFlowerPower(flowerPower) {
+      if (flowerPower._peripheral.state == 'connected') {
+        flowerPower.disconnect(function(err) {});
+      }
     }
 
   }, 1);
