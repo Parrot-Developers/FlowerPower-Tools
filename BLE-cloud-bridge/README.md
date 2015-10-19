@@ -64,7 +64,8 @@ To communicate with your Flower Powers, edit `credentials.json`:
 	"clientID": "...",
 	"clientSecret": "...",
 	"username": "...",
-	"passphrase": "..."
+	"passphrase": "...",
+	"url": "..."
 }
 ```
 And finaly, you can walk on the brigde.
