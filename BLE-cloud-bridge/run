@@ -1,5 +1,8 @@
 #!/bin/bash
 usage () {
+	echo
+	echo "-- Warning: Make sure you have a sudo permission --"
+	echo
 	echo "Flower Bridge: See Flowers fall on the bridge"
 	echo "Every 15 minutes (default), all of your Flower Power will be update"
 	echo 
@@ -14,27 +17,35 @@ usage () {
 	echo "		Specify the loop time in minute"
 	echo
 	echo "EXAMPLES:"
-	echo "	./run display		: (loop every 15 minutes)"
-	echo "	./run display 60	: (loop every 1 hour)"
-	echo "	./run background 1440	: (loop every day with no render in console)"
+	echo "	sudo ./run display		: (loop every 15 minutes)"
+	echo "	sudo ./run display 60		: (loop every 1 hour)"
+	echo "	sudo ./run background 1440	: (loop every day with no render in console)"
 	echo
 	echo "AUTHOR:"
 	echo "	Written by Bruno Sautron."
 }
 
-if [ $# > 0 ]
+welcome () {
+	echo
+	echo "-- Flower Bridge --"
+	echo
+}
+
+if [ -z "$1" ]
 then
-	if [ '$1' == "display" ]
+	usage
+else
+	if [ "$1" == "display" ]
 	then
-		echo "Show Updating"
-		sudo node ./start.js $2
-	elif [ '$1' == "render" ]
+		welcome
+		node ./start.js $2
+	elif [ "$1" == "background" ]
 	then
-		echo "Don't show Updating"
-		sudo node ./start.js $2 > output.log 2>&1
+		welcome
+		echo "To see your log:"
+		echo "$> cat output.log"
+		node ./start.js $2 > output.log 2>&1 &
 	else
 		usage
 	fi
-else
-	usage
 fi
