@@ -11,7 +11,7 @@ usage () {
 	echo "ARGUMENTS:"
 	echo "	cmd:"
 	echo "		display:	Lannch and show updating into your console"
-	echo "		backgroud:	Launch updatind to background. All output are redirect to 'output.log' file"
+	echo "		background:	Launch updatind to background. All output are redirect to 'output.log' file"
 	echo
 	echo "	delay (optional):"
 	echo "		Specify the loop time in minute"
