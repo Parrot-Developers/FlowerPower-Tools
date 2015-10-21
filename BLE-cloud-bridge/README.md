@@ -56,7 +56,7 @@ To communicate with your Flower Powers, edit `credentials.json`:
 And finaly, you can walk on the brigde.
 To run the program in background:
 ```bash
-$ ./run backgroud
+$ ./run background
 ```
 To have a output:
 ```bash
