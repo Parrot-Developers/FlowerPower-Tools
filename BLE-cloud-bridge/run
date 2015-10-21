@@ -22,19 +22,19 @@ usage () {
 	echo "	Written by Bruno Sautron."
 }
 
-if [ $# > 0 ]
+if [ -z "$1" ]
 then
-	if [ '$1' == "display" ]
+	usage
+else
+	if [ "$1" == "display" ]
 	then
 		echo "Show Updating"
 		sudo node ./start.js $2
-	elif [ '$1' == "render" ]
+	elif [ "$1" == "background" ]
 	then
 		echo "Don't show Updating"
-		sudo node ./start.js $2 > output.log 2>&1
+		sudo node ./start.js $2 > output.log 2>&1 &
 	else
 		usage
 	fi
-else
-	usage
 fi
