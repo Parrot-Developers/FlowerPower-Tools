@@ -18,7 +18,7 @@ emitter.on('process', function(uuid, proc) {
   if (!uuid) firstEmit = false;
   else {
     if (proc == 'Disconnected') {
-      if (fp[uuid].process == 'Connected') {
+      if (fp[uuid].process != 'No update required' && fp[uuid].process != 'Updated') {
         fp[uuid].process = 'Disconnected for no reason';
       }
     }
@@ -66,12 +66,21 @@ function logTime(flowerPower) {
   console.log(dest);
 }
 
+function tryCallback(callback, error, data) {
+  try {
+    callback(error, data);
+  }
+  catch(err) {
+    logTime('Try Callback:', err);
+  }
+}
+
 function iDontUseTheDevice(device, callback) {
   device._peripheral.removeAllListeners();
   device.removeAllListeners();
   device = null;
   if (typeof callback == 'function') {
-    callback();
+    tryCallback(callback);
   }
 }
 
@@ -110,6 +119,7 @@ exports.proc = proc;
 exports.emitter = emitter;
 exports.logTime = logTime;
 exports.makeParam = makeParam;
+exports.tryCallback = tryCallback;
 exports.iDontUseTheDevice = iDontUseTheDevice;
 exports.uuidPeripheralToCloud = uuidPeripheralToCloud;
 exports.uuidCloudToPeripheral = uuidCloudToPeripheral;
