@@ -140,5 +140,3 @@ exports.makeParam = makeParam;
 exports.concatJson = concatJson;
 exports.tryCallback = tryCallback;
 exports.iDontUseTheDevice = iDontUseTheDevice;
-exports.uuidPeripheralToCloud = uuidPeripheralToCloud;
-exports.uuidCloudToPeripheral = uuidCloudToPeripheral;
