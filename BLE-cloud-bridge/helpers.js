@@ -5,6 +5,8 @@ var FlowerPower = require('./node-flower-power/index');
 var emitter = new events.EventEmitter;
 var fp = {};
 
+var debug = false;
+
 emitter.on('process', function(uuid, proc) {
   var messColor = {
     'Connected': clc.green('Connected'),
@@ -15,24 +17,34 @@ emitter.on('process', function(uuid, proc) {
     'Searching': clc.yellow.bold('Searching'),
   }
 
-  if (!uuid) firstEmit = false;
-  else {
-    if (proc == 'Disconnected') {
-      if (fp[uuid].process != 'No update required' && fp[uuid].process != 'Updated') {
-        fp[uuid].process = 'Disconnected for no reason';
-      }
-    }
-    else {
+  if (debug) {
+    if (uuid) {
       fp[uuid].process = proc;
+      fp[uuid].date = new Date().toString().substr(4, 20);
+      console.log("[" + fp[uuid].date + "]:", clc.xterm(fp[uuid].color)(uuid + ":"), (messColor[fp[uuid].process]) ? messColor[fp[uuid].process] : fp[uuid].process);
     }
-    fp[uuid].date = new Date().toString().substr(4, 20);
-    process.stdout.write(clc.move.up(Object.keys(fp).length));
   }
-  for (identifier in fp) {
-    process.stdout.write(clc.erase.line);
-    console.log("[" + fp[identifier].date + "]:", clc.xterm(fp[identifier].color)(identifier + ":"), (messColor[fp[identifier].process]) ? messColor[fp[identifier].process] : fp[identifier].process);
+  else {
+    if (!uuid) firstEmit = false;
+    else {
+      if (proc == 'Disconnected') {
+        if (fp[uuid].process != 'No update required' && fp[uuid].process != 'Updated') {
+          fp[uuid].process = 'Disconnected for no reason';
+        }
+      }
+      else {
+        fp[uuid].process = proc;
+      }
+      fp[uuid].date = new Date().toString().substr(4, 20);
+      process.stdout.write(clc.move.up(Object.keys(fp).length));
+    }
+    for (identifier in fp) {
+      process.stdout.write(clc.erase.line);
+      console.log("[" + fp[identifier].date + "]:", clc.xterm(fp[identifier].color)(identifier + ":"), (messColor[fp[identifier].process]) ? messColor[fp[identifier].process] : fp[identifier].process);
+    }
   }
 });
+
 
 function proc(uuid, proc) {
   emitter.emit('process', uuid, proc);
@@ -56,7 +68,7 @@ function logTime(flowerPower) {
     if (typeof fp[flowerPower.uuid] != 'undefined') {
       color = fp[flowerPower.uuid].color;
     }
-    dest += ' ' + clc.xterm(color)( ((uuid) ? flowerPower.uuid : flowerPower.name) + ':');
+    dest += ' ' + clc.xterm(color)( ((uuid) ? flowerPower.uuid : flowerPower.uuid) + ':');
     i++;
   }
 
