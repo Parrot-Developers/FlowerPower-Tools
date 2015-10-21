@@ -1,0 +1,40 @@
+#!/bin/bash
+usage () {
+	echo "Flower Bridge: See Flowers fall on the bridge"
+	echo "Every 15 minutes (default), all of your Flower Power will be update"
+	echo 
+	echo "USAGE: ./run cmd [delay]"
+	echo
+	echo "ARGUMENTS:"
+	echo "	cmd:"
+	echo "		display:	Lannch and show updating into your console"
+	echo "		backgroud:	Launch updatind to background. All output are redirect to 'output.log' file"
+	echo
+	echo "	delay (optional):"
+	echo "		Specify the loop time in minute"
+	echo
+	echo "EXAMPLES:"
+	echo "	./run display		: (loop every 15 minutes)"
+	echo "	./run display 60	: (loop every 1 hour)"
+	echo "	./run background 1440	: (loop every day with no render in console)"
+	echo
+	echo "AUTHOR:"
+	echo "	Written by Bruno Sautron."
+}
+
+if [ $# > 0 ]
+then
+	if [ '$1' == "display" ]
+	then
+		echo "Show Updating"
+		sudo node ./start.js $2
+	elif [ '$1' == "render" ]
+	then
+		echo "Don't show Updating"
+		sudo node ./start.js $2 > output.log 2>&1
+	else
+		usage
+	fi
+else
+	usage
+fi
