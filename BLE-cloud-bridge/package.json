@@ -1,11 +1,10 @@
 {
   "name": "Flower-Bridge",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "sudo node start.js $FP_DELAY >debug.log 2>&1",
-    "test": "sudo node start.js $FP_DELAY"
+    "test": "echo 'test' && exit 0"
   },
   "author": "Bruno Sautron",
   "license": "ISC",
