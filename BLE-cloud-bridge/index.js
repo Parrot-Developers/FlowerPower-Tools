@@ -172,7 +172,6 @@ function retrieveSamples(flowerPower) {
     },
   }, function(err, dataBLE) {
     if (!err) {
-      // dataBLE.uuid = flowerPower.uuid;
       sendSamples(flowerPower, dataBLE, finishUpdate);
     }
     else {
