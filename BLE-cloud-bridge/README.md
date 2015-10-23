@@ -66,7 +66,6 @@ More details:
 $ sudo ./run
 ```
 
-
 <h2>How it works</h2>
 * Login Cloud
 * Loop (every 15 minutes by default)
