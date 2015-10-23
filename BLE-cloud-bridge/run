@@ -12,6 +12,7 @@ usage () {
 	echo "	cmd:"
 	echo "		display:	Lannch and show updating into your console"
 	echo "		background:	Launch updatind to background. All output are redirect to 'output.log' file"
+	echo "		stop: 		Stop all processings and kill the program"
 	echo
 	echo "	delay (optional):"
 	echo "		Specify the loop time in minute"
@@ -46,6 +47,19 @@ else
 		echo "$> cat output.log"
 		echo "$> sudo ./updatedb"
 		node ./start.js $2 > output.log 2>&1 &
+		echo $! > .isRunning
+	elif [ "$1" == "stop" ]
+	then
+		pid=$(head -n 1 ".isRunning" 2> /dev/null )
+		if [ -z "$pid" ]
+		then
+			echo "No program is running"
+		else
+			kill $pid
+			echo "kill" $pid
+			echo "Bye :)"
+		fi
+
 	else
 		usage
 	fi
