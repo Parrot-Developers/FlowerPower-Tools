@@ -44,6 +44,7 @@ else
 		welcome
 		echo "To see your log:"
 		echo "$> cat output.log"
+		echo "$> sudo ./updatedb"
 		node ./start.js $2 > output.log 2>&1 &
 	else
 		usage
