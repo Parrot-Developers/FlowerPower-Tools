@@ -64,6 +64,7 @@ $ sudo ./run display
 More details:
 ```bash
 $ sudo ./run
+$ sudo ./updatedb
 ```
 
 <h2>How it works</h2>
