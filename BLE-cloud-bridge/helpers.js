@@ -1,6 +1,8 @@
 var events = require('events');
 var clc = require('cli-color');
 var FlowerPower = require('./node-flower-power/index');
+var Datastore = require('nedb');
+var db = new Datastore({ filename: './database/process.db', autoload: true });
 
 var emitter = new events.EventEmitter;
 var fp = {};
@@ -17,25 +19,46 @@ emitter.on('process', function(uuid, proc) {
     'Searching': clc.yellow.bold('Searching'),
   }
 
+
   if (debug) {
     if (uuid) {
       fp[uuid].process = proc;
       fp[uuid].date = new Date().toString().substr(4, 20);
+      db.insert({
+        uuid: uuid,
+        proc: fp[uuid].process,
+        color: fp[uuid].color,
+        date: fp[uuid].date
+      });
       console.log("[" + fp[uuid].date + "]:", clc.xterm(fp[uuid].color)(uuid + ":"), (messColor[fp[uuid].process]) ? messColor[fp[uuid].process] : fp[uuid].process);
     }
   }
   else {
     if (!uuid) firstEmit = false;
     else {
+      var pushDb = true;
+
       if (proc == 'Disconnected') {
         if (fp[uuid].process != 'No update required' && fp[uuid].process != 'Updated') {
           fp[uuid].process = 'Disconnected for no reason';
+          fp[uuid].date = new Date().toString().substr(4, 20);
+        }
+        else {
+          pushDb = false;
         }
       }
       else {
         fp[uuid].process = proc;
+        fp[uuid].date = new Date().toString().substr(4, 20);
       }
-      fp[uuid].date = new Date().toString().substr(4, 20);
+      if (pushDb) {
+        db.insert({
+          uuid: uuid,
+          proc: fp[uuid].process,
+          color: fp[uuid].color,
+          date: fp[uuid].date
+        });
+      }
       process.stdout.write(clc.move.up(Object.keys(fp).length));
     }
     for (identifier in fp) {
