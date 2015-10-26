@@ -1,4 +1,7 @@
 #!/bin/bash
+
+pid=-1
+
 usage () {
 	echo
 	echo "-- Warning: Make sure you have a sudo permission --"
@@ -20,7 +23,7 @@ usage () {
 	echo "EXAMPLES:"
 	echo "	sudo ./run display		: (loop every 15 minutes)"
 	echo "	sudo ./run display 60		: (loop every 1 hour)"
-	echo "	sudo ./run background 1440	: (loop every day with no render in console)"
+	echo "	sudo ./run background 1440	: (loop every day without render in console)"
 	echo
 	echo "AUTHOR:"
 	echo "	Written by Bruno Sautron."
@@ -43,14 +46,20 @@ else
 	elif [ "$1" == "background" ]
 	then
 		welcome
-		echo "To see your log:"
-		echo "$> cat output.log"
-		echo "$> sudo ./updatedb"
-		node ./start.js $2 > output.log 2>&1 &
-		echo $! > .isRunning
+		pid=$(head -n 1 ".isRunning" 2> /dev/null)
+		if [ -z "$pid" ]
+		then
+			echo "To see your log:"
+			echo "$> cat output.log"
+			echo "$> sudo ./updatedb"
+			node ./start.js $2 > output.log 2>&1 &
+			echo $! > .isRunning
+		else
+			echo "A program is already running"
+		fi
 	elif [ "$1" == "stop" ]
 	then
-		pid=$(head -n 1 ".isRunning" 2> /dev/null )
+		pid=$(head -n 1 ".isRunning" 2> /dev/null)
 		if [ -z "$pid" ]
 		then
 			echo "No program is running"
