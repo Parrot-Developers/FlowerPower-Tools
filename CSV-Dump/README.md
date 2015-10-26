@@ -11,7 +11,7 @@ api.login("username", "password")
 ```
 
 <h2>Dump-Csv</h2>
-Now you can use the `CSVDump` module. The function `dumpAllFlowerPower` will get your `sensor_serial` from cloud, and for each sensor, create 1 .csv where there will be all samples.
+Now you can use the `CSVDump` module. The function `dumpAllFlowerPower` will get all your `sensor_serial` from cloud, and for each sensor, create 1 .csv where there will be all samples.
 This function need the instance of ApiCloud, a "from date time" and "to date time":
 ```python
 from CSVDump import *
