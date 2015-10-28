@@ -37,12 +37,12 @@ welcome () {
 
 loopingDisplay () {
 	welcome
-	node ./start.js $2
+	node ./start.js $1
 	while [ "$?" == 111 ]; do
 		echo "Crash into the program"
 		echo "Restart the program"
 		welcome
-		node ./start.js $2
+		node ./start.js $1
 	done
 }
 
@@ -51,7 +51,7 @@ background () {
 	pid=$(head -n 1 ".isRunning" 2> /dev/null)
 	if [ -z "$pid" ]
 	then
-		node ./start.js $2 > output.log 2>&1 &
+		node ./start.js $1 > output.log 2>&1 &
 		echo $! > .isRunning
 		echo "To see your log:"
 		echo "$> cat output.log"
@@ -73,10 +73,10 @@ then
 else
 	if [ "$1" == "display" ]
 	then
-		loopingDisplay 
+		loopingDisplay $2 
 	elif [ "$1" == "background" ]
 	then
-		background
+		background $2
 	elif [ "$1" == "stop" ]
 	then
 		pid=$(head -n 1 ".isRunning" 2> /dev/null)
