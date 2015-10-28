@@ -4,22 +4,36 @@ import csv
 
 dateFormat = "%d-%b-%Y %H:%M:%S"
 
-def dumpAllFlowerPower(api, fromDateTime, toDateTime):
+def dumpAllFlowerPower(api, since="born", until="today"):
     sensorDataSync = api.getSensorDataSync()
     for location in sensorDataSync["locations"]:
-        dumpFlowerPower(api, location, fromDateTime, toDateTime)
+        err = dumpFlowerPower(api, location, since, until)
+        if (err == -1):
+            print "Your 'Since' date is after your 'Unitl' date !?"
+            break ;
 
-def dumpFlowerPower(api, location, fromDateTime, toDateTime):
-    fromDateTime = datetime.strptime(fromDateTime, dateFormat)
-    toDateTime = datetime.strptime(toDateTime, dateFormat)
 
-    if (location['sensor_serial']):
+def dumpFlowerPower(api, location, since, until):
+    if (until == "today"):
+        until = datetime.today()
+    else:
+        until = datetime.strptime(until, dateFormat)
+    if (since == "born"):
+        since = until - timedelta(days=7)
+    else:
+        since = datetime.strptime(since, dateFormat)
+
+    if (since > until):
+        return -1
+    elif (location['sensor_serial']):
         print "Dump " + location['sensor_serial'] + '.csv'
+        print " From: " + str(since)[:19]
+        print " To:   " + str(until)[:19]
         fileCsv = csv.writer(open(location['sensor_serial'] + ".csv", "w"))
         fileCsv.writerow(["capture_ts", "par_umole_m2s", "vwc_percent", "air_temperature_celsius"])
 
-        while (fromDateTime < toDateTime):
-            samplesLocation = api.getSamplesLocation(location['location_identifier'], fromDateTime, fromDateTime + timedelta(days=7))
+        while (since < until):
+            samplesLocation = api.getSamplesLocation(location['location_identifier'], since, since + timedelta(days=7))
 
             if (len(samplesLocation["errors"])):
                 print location['sensor_serial'], samplesLocation["errors"][0]["error_message"]
@@ -32,4 +46,6 @@ def dumpFlowerPower(api, location, fromDateTime, toDateTime):
                 air_temperature_celsius = sample["air_temperature_celsius"]
                 fileCsv.writerow([capture_ts, par_umole_m2s, vwc_percent, air_temperature_celsius])
 
-            fromDateTime += timedelta(days=7)
+            since += timedelta(days=7)
+        print
+        return 0
