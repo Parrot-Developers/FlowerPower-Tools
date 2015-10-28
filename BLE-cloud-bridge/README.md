@@ -54,10 +54,19 @@ To communicate with your Flower Powers, edit `credentials.json`:
 }
 ```
 And finaly, you can walk on the brigde.
-To start the program:
+To run the program in background:
 ```bash
-$ npm start
+$ sudo ./run background
 ```
+To have a output:
+```bash
+$ sudo ./run display
+```
+More details:
+```bash
+$ sudo ./run
+```
+
 
 <h2>How it works</h2>
 * Login Cloud

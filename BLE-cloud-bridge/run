@@ -87,7 +87,6 @@ else
 			killProgram
 			echo "Bye :)"
 		fi
-
 	else
 		usage
 	fi
