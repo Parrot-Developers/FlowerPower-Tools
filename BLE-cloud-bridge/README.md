@@ -53,13 +53,11 @@ To communicate with your Flower Powers, edit `credentials.json`:
 }
 ```
 And finaly, you can walk on the brigde.
-To run the program in background:
+:
 ```bash
-$ sudo ./run background
-```
-To have a output:
-```bash
-$ sudo ./run display
+$ sudo ./run background 	: To run the program in background
+$ sudo ./run display		: To have a output:
+$ sudo ./run stop			: To stop this program
 ```
 More details:
 ```bash
