@@ -9,7 +9,7 @@ def dumpAllFlowerPower(api, since="born", until="today"):
     for location in sensorDataSync["locations"]:
         err = dumpFlowerPower(api, location, since, until)
         if (err == -1):
-            print "Your 'Since' date is after your 'Unitl' date !?"
+            print "Your 'Since' date is after your 'Until' date !?"
             break ;
 
 
