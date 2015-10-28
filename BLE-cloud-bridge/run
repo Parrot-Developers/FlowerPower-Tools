@@ -35,28 +35,48 @@ welcome () {
 	echo
 }
 
+loopingDisplay () {
+	welcome
+	node ./start.js $1
+	while [ "$?" == 111 ]; do
+		echo "Crash into the program"
+		echo "Restart the program"
+		welcome
+		node ./start.js $1
+	done
+}
+
+background () {
+	welcome
+	pid=$(head -n 1 ".isRunning" 2> /dev/null)
+	if [ -z "$pid" ]
+	then
+		node ./start.js $1 > output.log 2>&1 &
+		echo $! > .isRunning
+		echo "To see your log:"
+		echo "$> cat output.log"
+		echo "$> sudo ./updatedb"
+	else
+		echo "A program is already running"
+	fi
+}
+
+killProgram () {
+	kill $pid
+	rm ".isRunning"
+	echo "kill" $pid
+}
+
 if [ -z "$1" ]
 then
 	usage
 else
 	if [ "$1" == "display" ]
 	then
-		welcome
-		node ./start.js $2
+		loopingDisplay $2 
 	elif [ "$1" == "background" ]
 	then
-		welcome
-		pid=$(head -n 1 ".isRunning" 2> /dev/null)
-		if [ -z "$pid" ]
-		then
-			echo "To see your log:"
-			echo "$> cat output.log"
-			echo "$> sudo ./updatedb"
-			node ./start.js $2 > output.log 2>&1 &
-			echo $! > .isRunning
-		else
-			echo "A program is already running"
-		fi
+		background $2
 	elif [ "$1" == "stop" ]
 	then
 		pid=$(head -n 1 ".isRunning" 2> /dev/null)
@@ -64,12 +84,9 @@ else
 		then
 			echo "No program is running"
 		else
-			kill $pid
-			rm ".isRunning"
-			echo "kill" $pid
+			killProgram
 			echo "Bye :)"
 		fi
-
 	else
 		usage
 	fi
