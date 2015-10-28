@@ -1,5 +1,11 @@
 #!/bin/bash
+
+pid=-1
+
 usage () {
+	echo
+	echo "-- Warning: Make sure you have a sudo permission --"
+	echo
 	echo "Flower Bridge: See Flowers fall on the bridge"
 	echo "Every 15 minutes (default), all of your Flower Power will be update"
 	echo 
@@ -8,18 +14,57 @@ usage () {
 	echo "ARGUMENTS:"
 	echo "	cmd:"
 	echo "		display:	Lannch and show updating into your console"
-	echo "		backgroud:	Launch updatind to background. All output are redirect to 'output.log' file"
+	echo "		background:	Launch updatind to background. All output are redirect to 'output.log' file"
+	echo "		stop: 		Stop all processings and kill the program"
 	echo
 	echo "	delay (optional):"
 	echo "		Specify the loop time in minute"
 	echo
 	echo "EXAMPLES:"
-	echo "	./run display		: (loop every 15 minutes)"
-	echo "	./run display 60	: (loop every 1 hour)"
-	echo "	./run background 1440	: (loop every day with no render in console)"
+	echo "	sudo ./run display		: (loop every 15 minutes)"
+	echo "	sudo ./run display 60		: (loop every 1 hour)"
+	echo "	sudo ./run background 1440	: (loop every day without render in console)"
 	echo
 	echo "AUTHOR:"
 	echo "	Written by Bruno Sautron."
+}
+
+welcome () {
+	echo
+	echo "-- Flower Bridge --"
+	echo
+}
+
+loopingDisplay () {
+	welcome
+	node ./start.js $2
+	while [ "$?" == 111 ]; do
+		echo "Crash into the program"
+		echo "Restart the program"
+		welcome
+		node ./start.js $2
+	done
+}
+
+background () {
+	welcome
+	pid=$(head -n 1 ".isRunning" 2> /dev/null)
+	if [ -z "$pid" ]
+	then
+		node ./start.js $2 > output.log 2>&1 &
+		echo $! > .isRunning
+		echo "To see your log:"
+		echo "$> cat output.log"
+		echo "$> sudo ./updatedb"
+	else
+		echo "A program is already running"
+	fi
+}
+
+killProgram () {
+	kill $pid
+	rm ".isRunning"
+	echo "kill" $pid
 }
 
 if [ -z "$1" ]
@@ -28,12 +73,21 @@ then
 else
 	if [ "$1" == "display" ]
 	then
-		echo "Show Updating"
-		sudo node ./start.js $2
+		loopingDisplay 
 	elif [ "$1" == "background" ]
 	then
-		echo "Don't show Updating"
-		sudo node ./start.js $2 > output.log 2>&1 &
+		background
+	elif [ "$1" == "stop" ]
+	then
+		pid=$(head -n 1 ".isRunning" 2> /dev/null)
+		if [ -z "$pid" ]
+		then
+			echo "No program is running"
+		else
+			killProgram
+			echo "Bye :)"
+		fi
+
 	else
 		usage
 	fi

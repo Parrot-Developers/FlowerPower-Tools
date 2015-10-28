@@ -20,12 +20,14 @@ var API = new CloudAPI({
 
 API.on('error', function(err) {
   helpers.logTime('background error: ' + err.message);
+  process.exit(1);
 });
 
 function start(delay) {
   API.login(credentials.username, credentials.passphrase, function(err) {
     if (!!err) {
-      return helpers.logTime(clc.red('login error: ' + err.message));
+      helpers.logTime(clc.red('login error: ' + err.message));
+      process.exit(1);
     }
     else {
       helpers.logTime(clc.green('LogIn Successful!'));
@@ -85,6 +87,7 @@ function discoverAllFlowerPowers() {
   var q = async.queue(function(task, callbackNext) {
     var discover = function(device) {
       if (device.name == task.name) {
+        device.name = task.name;
         FlowerPower.stopDiscoverAll(discover);
         beginProccess(device, task, callbackNext);
       }
@@ -93,13 +96,13 @@ function discoverAllFlowerPowers() {
       }
     };
 
-    helpers.proc(task.name, 'Searching');
+    helpers.proc(task.name, 'Searching', false);
     FlowerPower.discoverAll(discover);
 
     setTimeout(function() {
       if (task.state == 'standby') {
         FlowerPower.stopDiscoverAll(discover);
-        helpers.proc(task.name, 'Not Found');
+        helpers.proc(task.name, 'Not Found', true);
         helpers.tryCallback(callbackNext);
       }
     }, 30000);
@@ -126,40 +129,48 @@ function discoverAllFlowerPowers() {
 
 
 function beginProccess(flowerPower, task, callbackNext) {
-  if (flowerPower._peripheral.state == 'disconnected' && flowerPower.flags.hasEntry) {
-    helpers.proc(flowerPower.name, 'Connection');
+  if (flowerPower._peripheral.state == 'disconnected') {
+    helpers.proc(flowerPower.name, 'Connection', false);
     flowerPower._peripheral.on('disconnect', function() {
-      helpers.proc(flowerPower.name, 'Disconnected');
+      helpers.proc(flowerPower.name, 'Disconnected', false);
       setTimeout(function() {
         helpers.tryCallback(callbackNext);
       }, 2000);
     });
     flowerPower._peripheral.on('connect', function() {
-      helpers.proc(flowerPower.name, 'Connected');
+      task.state = 'running';
+      helpers.proc(flowerPower.name, 'Connected', false);
     });
-    retrieveSamples(flowerPower);
-    task.state = 'running';
+    retrieveSamples(flowerPower, task, callbackNext);
+    task.state = 'tryRunning';
   }
   else if (flowerPower._peripheral.state == 'disconnected') {
     task.state = 'uploaded';
     helpers.proc(flowerPower.name, "No update required");
-    helpers.iDontUseTheDevice(flowerPower, callbackNext);
+    helpers.iDontUseTheDevice(flowerPower, callbackNext, true);
   }
   else if (flowerPower._peripheral.state == 'connecting') {
     task.state = 'connect';
     helpers.proc(flowerPower.name, "is on connection");
-    helpers.iDontUseTheDevice(flowerPower, callbackNext);
+    helpers.iDontUseTheDevice(flowerPower, callbackNext, true);
   }
   else {
     task.state = 'not available';
-    helpers.proc(flowerPower.name, 'is not available: ' + flowerPower._peripheral.state);
+    helpers.proc(flowerPower.name, 'is not available: ' + flowerPower._peripheral.state, true);
     helpers.iDontUseTheDevice(flowerPower, callbackNext);
   }
 }
 
-function retrieveSamples(flowerPower) {
+function retrieveSamples(flowerPower, task, callbackNext) {
   async.series({
     connected: function(callback) {
+      setTimeout(function () {
+        if (task.state == 'tryRunning') {
+          helpers.proc(flowerPower.name, 'Connection failed to ' + flowerPower.type, true);
+          disconnectFlowerPower(flowerPower);
+          helpers.tryCallback(callbackNext);
+        }
+      }, 30000);
       flowerPower.connectAndSetup(callback);
     },
     history_nb_entries: function(callback) {
@@ -179,13 +190,13 @@ function retrieveSamples(flowerPower) {
     },
     start_up_time: function(callback) {
       flowerPower.getStartupTime(callback);
-    },
+    }
   }, function(err, dataBLE) {
     if (!err) {
       sendSamples(flowerPower, dataBLE);
     }
     else {
-      helpers.logTime('Error: retrieveSamples()');
+      helpers.logTime(err);
       disconnectFlowerPower(flowerPower);
     }
   });
@@ -199,10 +210,10 @@ function sendSamples(flowerPower, dataBLE, callback) {
     finishUpdate(flowerPower, null, null);
   }
   else {
-    helpers.proc(flowerPower.name, 'Getting samples');
+    helpers.proc(flowerPower.name, 'Getting samples', false);
     flowerPower.getHistory(startIndex, function(error, history) {
       dataBLE.buffer_base64 = history;
-      var param = helpers.makeParam(flowerPower, dataBLE, dataCloud);
+      var param = helpers.makeParam(flowerPower, dataBLE, dataCloud, startIndex);
       API.sendSamples(param, function(error, buffer) {
         finishUpdate(flowerPower, error, buffer);
       });
@@ -211,9 +222,9 @@ function sendSamples(flowerPower, dataBLE, callback) {
 }
 
 function finishUpdate(flowerPower, err, buffer) {
-  if (err) helpers.proc(flowerPower.name, 'Error send History');
-  else if (buffer) helpers.proc(flowerPower.name, 'Updated');
-  else helpers.proc(flowerPower.name, 'No update required');
+  if (err) helpers.proc(flowerPower.name, 'Error send History', true);
+  else if (buffer) helpers.proc(flowerPower.name, 'Updated', true);
+  else helpers.proc(flowerPower.name, 'No update required', true);
   disconnectFlowerPower(flowerPower);
 }
 
