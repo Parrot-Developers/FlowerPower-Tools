@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pid=-1
+pid=0
 
 usage () {
 	echo
@@ -14,7 +14,7 @@ usage () {
 	echo "ARGUMENTS:"
 	echo "	cmd:"
 	echo "		display:	Lannch and show updating into your console"
-	echo "		background:	Launch updatind to background. All output are redirect to 'output.log' file"
+	echo "		background:	Launch updatind to background. To know what happening: \`$ sudo ./updatedb\`"
 	echo "		stop: 		Stop all processings and kill the program"
 	echo
 	echo "	delay (optional):"
@@ -37,34 +37,34 @@ welcome () {
 
 loopingDisplay () {
 	welcome
-	node ./start.js $1
+	node ./start.js $1 2> trace.log
 	while [ "$?" == 111 ]; do
 		echo "Crash into the program"
 		echo "Restart the program"
 		welcome
-		node ./start.js $1
+		node ./start.js $1 2> trace.log
 	done
 }
 
 background () {
 	welcome
-	pid=$(head -n 1 ".isRunning" 2> /dev/null)
+	pid=$(head -n 1 ".flowerIsRunning" 2> /dev/null)
 	if [ -z "$pid" ]
 	then
-		node ./start.js $1 > output.log 2>&1 &
-		echo $! > .isRunning
+		node ./start.js $1 2> trace.log 1>/dev/null &
+		echo $! > ".flowerIsRunning"
 		echo "To see your log:"
-		echo "$> cat output.log"
 		echo "$> sudo ./updatedb"
 	else
-		echo "A program is already running"
+		echo "[$pid]: A program is already running"
 	fi
 }
 
 killProgram () {
 	kill $pid
-	rm ".isRunning"
+	rm ".flowerIsRunning"
 	echo "kill" $pid
+	pid=0
 }
 
 if [ -z "$1" ]
@@ -79,7 +79,7 @@ else
 		background $2
 	elif [ "$1" == "stop" ]
 	then
-		pid=$(head -n 1 ".isRunning" 2> /dev/null)
+		pid=$(head -n 1 ".flowerIsRunning" 2> /dev/null)
 		if [ -z "$pid" ]
 		then
 			echo "No program is running"
