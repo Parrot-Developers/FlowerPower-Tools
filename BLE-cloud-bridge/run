@@ -37,24 +37,23 @@ welcome () {
 
 loopingDisplay () {
 	welcome
-	node ./start.js $1
+	node ./start.js $1 2> trace.log
 	while [ "$?" == 111 ]; do
 		echo "Crash into the program"
 		echo "Restart the program"
 		welcome
-		node ./start.js $1
+		node ./start.js $1 2> trace.log
 	done
 }
 
 background () {
 	welcome
-	pid=$(head -n 1 ".isRunning" 2> /dev/null)
+	pid=$(head -n 1 "$HOME/.flowerIsRunning" 2> /dev/null)
 	if [ -z "$pid" ]
 	then
-		node ./start.js $1 > output.log 2>&1 &
-		echo $! > .isRunning
+		node ./start.js $1 2> trace.log 1>/dev/null &
+		echo $! > "$HOME/.flowerIsRunning"
 		echo "To see your log:"
-		echo "$> cat output.log"
 		echo "$> sudo ./updatedb"
 	else
 		echo "A program is already running"
@@ -63,7 +62,7 @@ background () {
 
 killProgram () {
 	kill $pid
-	rm ".isRunning"
+	rm "$HOME/.flowerIsRunning"
 	echo "kill" $pid
 }
 
@@ -79,7 +78,7 @@ else
 		background $2
 	elif [ "$1" == "stop" ]
 	then
-		pid=$(head -n 1 ".isRunning" 2> /dev/null)
+		pid=$(head -n 1 "$HOME/.flowerIsRunning" 2> /dev/null)
 		if [ -z "$pid" ]
 		then
 			echo "No program is running"
