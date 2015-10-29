@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pid=-1
+pid=0
 
 usage () {
 	echo
@@ -48,22 +48,23 @@ loopingDisplay () {
 
 background () {
 	welcome
-	pid=$(head -n 1 "$HOME/.flowerIsRunning" 2> /dev/null)
+	pid=$(head -n 1 ".flowerIsRunning" 2> /dev/null)
 	if [ -z "$pid" ]
 	then
 		node ./start.js $1 2> trace.log 1>/dev/null &
-		echo $! > "$HOME/.flowerIsRunning"
+		echo $! > ".flowerIsRunning"
 		echo "To see your log:"
 		echo "$> sudo ./updatedb"
 	else
-		echo "A program is already running"
+		echo "[$pid]: A program is already running"
 	fi
 }
 
 killProgram () {
 	kill $pid
-	rm "$HOME/.flowerIsRunning"
+	rm ".flowerIsRunning"
 	echo "kill" $pid
+	pid=0
 }
 
 if [ -z "$1" ]
@@ -78,7 +79,7 @@ else
 		background $2
 	elif [ "$1" == "stop" ]
 	then
-		pid=$(head -n 1 "$HOME/.flowerIsRunning" 2> /dev/null)
+		pid=$(head -n 1 ".flowerIsRunning" 2> /dev/null)
 		if [ -z "$pid" ]
 		then
 			echo "No program is running"
