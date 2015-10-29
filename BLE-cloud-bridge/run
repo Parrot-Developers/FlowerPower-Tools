@@ -14,7 +14,7 @@ usage () {
 	echo "ARGUMENTS:"
 	echo "	cmd:"
 	echo "		display:	Lannch and show updating into your console"
-	echo "		background:	Launch updatind to background. All output are redirect to 'output.log' file"
+	echo "		background:	Launch updatind to background. To know what happening: \`$ sudo ./updatedb\`"
 	echo "		stop: 		Stop all processings and kill the program"
 	echo
 	echo "	delay (optional):"
