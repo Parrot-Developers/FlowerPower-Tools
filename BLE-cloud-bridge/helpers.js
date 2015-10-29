@@ -7,70 +7,62 @@ var db = new Datastore({ filename: './database/process.db', autoload: true });
 var emitter = new events.EventEmitter;
 var fp = {};
 
+var messColor = {
+  'Connected': clc.green('Connected'),
+  'No update required': clc.yellow('No update required'),
+  'Updated': clc.green.bold('Updated'),
+  'None': clc.xterm(238)('None'),
+  'Not Found': clc.red.bold('Not Found'),
+  'Searching': clc.yellow.bold('Searching'),
+}
+
 var debug = false;
-
-emitter.on('process', function(uuid, proc) {
-  var messColor = {
-    'Connected': clc.green('Connected'),
-    'No update required': clc.yellow('No update required'),
-    'Updated': clc.green.bold('Updated'),
-    'None': clc.xterm(238)('None'),
-    'Not Found': clc.red.bold('Not Found'),
-    'Searching': clc.yellow.bold('Searching'),
-  }
-
+emitter.on('process', function(uuid, proc, pushDb) {
 
   if (debug) {
     if (uuid) {
       fp[uuid].process = proc;
       fp[uuid].date = new Date().toString().substr(4, 20);
-      db.insert({
-        uuid: uuid,
-        proc: fp[uuid].process,
-        color: fp[uuid].color,
-        date: fp[uuid].date
-      });
-      console.log("[" + fp[uuid].date + "]:", clc.xterm(fp[uuid].color)(uuid + ":"), (messColor[fp[uuid].process]) ? messColor[fp[uuid].process] : fp[uuid].process);
+      console.log(printTimeLog(fp, uuid));
     }
   }
   else {
     if (!uuid) firstEmit = false;
     else {
-      var pushDb = true;
-
       if (proc == 'Disconnected') {
         if (fp[uuid].process != 'No update required' && fp[uuid].process != 'Updated') {
           fp[uuid].process = 'Disconnected for no reason';
           fp[uuid].date = new Date().toString().substr(4, 20);
-        }
-        else {
-          pushDb = false;
+          pushDb = true;
         }
       }
       else {
         fp[uuid].process = proc;
         fp[uuid].date = new Date().toString().substr(4, 20);
       }
-      if (pushDb) {
-        db.insert({
-          uuid: uuid,
-          proc: fp[uuid].process,
-          color: fp[uuid].color,
-          date: fp[uuid].date
-        });
-      }
       process.stdout.write(clc.move.up(Object.keys(fp).length));
     }
     for (identifier in fp) {
       process.stdout.write(clc.erase.line);
-      console.log("[" + fp[identifier].date + "]:", clc.xterm(fp[identifier].color)(identifier + ":"), (messColor[fp[identifier].process]) ? messColor[fp[identifier].process] : fp[identifier].process);
+      console.log(printTimeLog(fp, identifier));
     }
+  }
+  if (pushDb) {
+    db.insert({
+      uuid: uuid,
+      proc: fp[uuid].process,
+      color: fp[uuid].color,
+      date: fp[uuid].date
+    });
   }
 });
 
+function printTimeLog(fp, identifier) {
+  return ("[" + fp[identifier].date + "]: " + clc.xterm(fp[identifier].color)(identifier + ": ") + ((messColor[fp[identifier].process]) ? messColor[fp[identifier].process] : fp[identifier].process));
+}
 
-function proc(uuid, proc) {
-  emitter.emit('process', uuid, proc);
+function proc(uuid, proc, pushDb) {
+  emitter.emit('process', uuid, proc, pushDb);
 }
 
 function uuidPeripheralToCloud(uuid) {
