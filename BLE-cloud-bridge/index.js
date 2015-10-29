@@ -93,7 +93,7 @@ function discoverAllFlowerPowers() {
         helpers.proc(task.uuid, 'Not Found', true);
         helpers.tryCallback(callbackNext);
       }
-    }, 10000);
+    }, 30000);
   }, 1);
 
   q.drain = function() {
