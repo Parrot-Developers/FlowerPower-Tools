@@ -1,0 +1,20 @@
+<% include header.html %>
+
+<h1>Your garden here</h1>
+
+<div id="garden">
+  <% for (var i = 0; i < sensors.length; i++) { %>
+    <div class="sensor">
+      <div class="uuid"><%= sensors[i].sensor_serial.substr(12, 4) %></div>
+      <div class="state">Last upload:
+        <% if (sensors[i].last_upload_datetime_utc) { %>
+          <%= sensors[i].last_upload_datetime_utc.replace('T', ' ').replace('Z', '').substr(0, 16) %>
+        <% } else { %>
+          <%= 'Never' %>
+        <%} %>
+      </div>
+    </div>
+    <% } %>
+</div>
+
+<% include footer.html %>

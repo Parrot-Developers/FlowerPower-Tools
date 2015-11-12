@@ -1,0 +1,19 @@
+<% include header.html %>
+
+<div id='container'>
+    <div id='s-container' class='flex f-vertical f-center'>
+        <div id='ss-container' class='flex f-horizontal f-center'>
+            <div id='input' class="flex f-vertical f-center">
+                <form id='login' action='/login' method='post'>
+                    <input type="text" name='client[id]' id="username" placeholder='Client ID'>
+                    <input type="text" name='client[secret]' id="username" placeholder='Client Secret'>
+                    <input type="text" name='user[name]' id="username" placeholder='your@email.com'>
+                    <input type="password" name='user[pass]' id="password" placeholder='password'>
+                </form>
+                <button type="submit" form="login" value="Submit">Login</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<% include footer.html %>

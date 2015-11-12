@@ -35,8 +35,8 @@ function usage() {
   console.log();
   console.log('EXAMPLES:');
   console.log("\tsudo ./updatedb all\t\t\t: 10 last process");
-  console.log("\tsudo ./updatedb uuid=\"a3143decadc0\"\t: last process of this Flower Power");
-  console.log("\tsudo ./updatedb uuid=\"a3143decadc0\" proc=\"Updated\" 5\t: Show 5 last update for this Flower Power");
+  console.log("\tsudo ./updatedb proc=\"a3143decadc0\"\t: last process of this Flower Power");
+  console.log("\tsudo ./updatedb proc=\"a3143decadc0\" proc=\"Updated\" 5\t: Show 5 last update for this Flower Power");
   console.log();
   console.log("AUTHOR:");
   console.log("\tWritten by Bruno Sautron.");
