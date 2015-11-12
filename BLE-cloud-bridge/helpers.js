@@ -2,8 +2,8 @@ var events = require('events');
 var clc = require('cli-color');
 var FlowerPower = require('./node-flower-power/index');
 var Datastore = require('nedb');
-var db = new Datastore({ filename: './database/process.db', autoload: true });
-
+// var db = new Datastore({ filename: './database/process.db', autoload: true });
+var Global = require('./Global');
 var emitter = new events.EventEmitter;
 var fp = {};
 
@@ -16,13 +16,14 @@ var messColor = {
   'Searching': clc.yellow.bold('Searching'),
 }
 
-var debug = false;
+var debug = true;
 emitter.on('process', function(uuid, proc, pushDb) {
 
   if (debug) {
     if (uuid) {
       fp[uuid].process = proc;
       fp[uuid].date = new Date().toString().substr(4, 20);
+      Global.io.emit('process', uuid, fp[uuid])
       console.log(printTimeLog(fp, uuid));
     }
   }
@@ -47,14 +48,14 @@ emitter.on('process', function(uuid, proc, pushDb) {
       console.log(printTimeLog(fp, identifier));
     }
   }
-  if (pushDb) {
-    db.insert({
-      uuid: uuid,
-      proc: fp[uuid].process,
-      color: fp[uuid].color,
-      date: fp[uuid].date
-    });
-  }
+  // if (pushDb) {
+  //   db.insert({
+  //     uuid: uuid,
+  //     proc: fp[uuid].process,
+  //     color: fp[uuid].color,
+  //     date: fp[uuid].date
+  //   });
+  // }
 });
 
 function printTimeLog(fp, identifier) {

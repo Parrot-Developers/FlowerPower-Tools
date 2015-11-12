@@ -8,7 +8,8 @@
       <div class="uuid"><%= sensors[i].sensor_serial.substr(12, 4) %></div>
       <div class="state">Last upload:
         <% if (sensors[i].last_upload_datetime_utc) { %>
-          <%= sensors[i].last_upload_datetime_utc.replace('T', ' ').replace('Z', '').substr(0, 16) %>
+
+          <%= sensors[i].last_upload_datetime_utc.replace('T', ' ').replace('Z', '').replace(/-/g, ' ').substr(0, 16) %>
         <% } else { %>
           <%= 'Never' %>
         <%} %>
@@ -16,5 +17,16 @@
     </div>
     <% } %>
 </div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io.connect('http://localhost:3000');
+  console.log('holla');
+  socket.on('process', function(uuid, flowerPower) {
+    console.log(uuid, flowerPower.process);
+  });
+</script>
+
+
 
 <% include footer.html %>

@@ -1,9 +1,16 @@
-var express = require('express');
 var bodyParser = require('body-parser');
-var CloudAPI = require('./FlowerCloud/index');
+var CloudAPI = require('./FlowerCloud/index2');
+var express = require('express');
 var app = express();
+var server = app.listen(3000, function() {
+  console.log('http://localhost:3000');
+});
+var io = require('socket.io');
+var Global = require('./Global');
+var bridge = require('./index');
 
 var Parrot = new CloudAPI();
+
 
 function logServer(infos) {
   var str = '[';
@@ -23,8 +30,9 @@ app.use(bodyParser());
 app.use(express.static(__dirname + '/public'));
 
 app.get('/', function(req, res) {
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Home');
+  logServer({method: 'GET', path: req.originalUrl});
+
+  res.render('index');
 });
 
 app.route('/login')
@@ -43,10 +51,18 @@ app.route('/login')
     });
   });
 
+app.get('/gg', function(req, res) {
+  logServer({method: 'GET', path: req.originalUrl});
+
+  bridge.start(15 * 60 * 1000);
+  res.end('end');
+})
+
 app.get('/garden', function(req, res) {
   logServer({method: 'GET', path: req.originalUrl});
 
   Parrot.getGarden().then(function(results) {
+    bridge.start(15 * 60 * 1000);
     res.render('garden', results);
   }).catch(function(err) {
     res.redirect('/login');
@@ -64,6 +80,12 @@ app.use(function(req, res, next) {
   res.send(404, 'Page not found');
 });
 
-app.listen(3000, function() {
-  console.log('http://localhost:3000');
+Global.io = io.listen(server);
+Global.io.sockets.on('connection', function(socket) {
+
+  socket.on('process', function(uuid, flowerPower) {
+    console.log('PROCESS');
+    // console.log(uuid, flowerPower.proc);
+    socket.broadcast.emit('process', uuid, flowerPower);
+  });
 });

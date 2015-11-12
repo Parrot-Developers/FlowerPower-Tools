@@ -12,6 +12,7 @@
     "async": "*",
     "chance": "*",
     "cli-color": "*",
-    "nedb": "^1.2.1"
+    "nedb": "^1.2.1",
+    "socket.io": "^1.3.7"
   }
 }
