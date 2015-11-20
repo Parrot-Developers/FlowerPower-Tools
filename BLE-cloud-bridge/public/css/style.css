@@ -57,7 +57,7 @@ button {
 .sensor {
   width: 100px;
   height: 100px;
-  background: red;
+  background: #5EB6DD;
   /*margin: 3px;*/
   display: inline-block;
 }

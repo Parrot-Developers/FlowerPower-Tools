@@ -3,27 +3,39 @@
 <h1>Your garden here</h1>
 
 <div id="garden">
-  <% for (var i = 0; i < sensors.length; i++) { %>
-    <div class="sensor">
-      <div class="uuid"><%= sensors[i].sensor_serial.substr(12, 4) %></div>
-      <div class="state">Last upload:
-        <% if (sensors[i].last_upload_datetime_utc) { %>
-
-          <%= sensors[i].last_upload_datetime_utc.replace('T', ' ').replace('Z', '').replace(/-/g, ' ').substr(0, 16) %>
-        <% } else { %>
-          <%= 'Never' %>
-        <%} %>
-      </div>
-    </div>
-    <% } %>
+  <div style="width:100px; height:100px; background: red;" onclick="auto()">Automatic</div>
 </div>
 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
   var socket = io.connect('http://localhost:3000');
-  console.log('holla');
-  socket.on('process', function(uuid, flowerPower) {
-    console.log(uuid, flowerPower.process);
+
+  function auto() {
+    console.log('click');
+    socket.emit('automatic');
+  }
+  socket.on('process', function(uuid, mess) {
+    id = uuid.substr(8).toUpperCase();
+    if (mess == 'Searching') {
+      $('#' + id).css("background", "#F6E497");
+    }
+    else if (mess == 'Updated' || mess == 'No update required') {
+      $('#' + id).css("background", "#B0CC99");
+    }
+    else if (mess == 'Not found' || mess == 'error') {
+      $('#' + id).css("background", "#B1221C");
+    }
+    // console.log(uuid, mess);
+  });
+  socket.on('sensors', function(sensors) {
+    for (var identifier in sensors) {
+      var sensor = sensors[identifier];
+      var sensorDiv = $('<div class="sensor" id="' + sensor.sensor_serial.substr(12) + '"></div>');
+      sensorDiv.append('<div class="uuid">' + sensor.sensor_serial.substr(12) + '</div>');
+      sensorDiv.append('<div class="lastUpload">' + sensor.last_upload_datetime_utc + '</div>');
+      $('#garden').append(sensorDiv);
+    }
   });
 </script>
 

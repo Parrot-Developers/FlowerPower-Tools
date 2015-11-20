@@ -1,9 +1,9 @@
 var events = require('events');
 var clc = require('cli-color');
-var FlowerPower = require('./node-flower-power/index');
+var FlowerPower = require('../node-flower-power/index');
 var Datastore = require('nedb');
 // var db = new Datastore({ filename: './database/process.db', autoload: true });
-var Global = require('./Global');
+// var pannel = require('./pannel');
 var emitter = new events.EventEmitter;
 var fp = {};
 
@@ -14,7 +14,7 @@ var messColor = {
   'None': clc.xterm(238)('None'),
   'Not Found': clc.red.bold('Not Found'),
   'Searching': clc.yellow.bold('Searching'),
-}
+};
 
 var debug = true;
 emitter.on('process', function(uuid, proc, pushDb) {
@@ -23,7 +23,6 @@ emitter.on('process', function(uuid, proc, pushDb) {
     if (uuid) {
       fp[uuid].process = proc;
       fp[uuid].date = new Date().toString().substr(4, 20);
-      Global.io.emit('process', uuid, fp[uuid])
       console.log(printTimeLog(fp, uuid));
     }
   }
@@ -112,6 +111,20 @@ function iDontUseTheDevice(device, callback) {
   }
 }
 
+// function concatJson(json1, json2) {
+//   var dest = json1;
+//
+//   for (var key in json2) {
+//     if (typeof json1[key] == 'object' && typeof json2[key] == 'object') {
+//       dest[key] = concatJson(json1[key], json2[key]);
+//     }
+//     else {
+//       dest[key] = json2[key];
+//     }
+//   }
+//   return dest;
+// }
+
 function makeParam(flowerPower, dataBLE, dataCloud) {
   var results = {};
 
@@ -123,7 +136,7 @@ function makeParam(flowerPower, dataBLE, dataCloud) {
   results["user_config_version"] = dataCloud.userConfig.user_config_version;
 
   session["sensor_serial"] = uuidPeripheralToCloud(flowerPower.uuid);
-  session["sensor_startup_timestamp_utc"] = dataBLE.start_up_time;
+  session["sensor_startup_timestamp_utc"] = dataBLE.start_up_time.toISOString();
   session["session_id"] = dataBLE.history_current_session_id;
   session["session_start_index"] = dataBLE.history_current_session_start_index;
   session["sample_measure_period"] = dataBLE.history_current_session_period;
@@ -138,7 +151,6 @@ function makeParam(flowerPower, dataBLE, dataCloud) {
   results["session_histories"] = [session];
   results["uploads"] = [uploads];
 
-
   return results;
 }
 
@@ -147,6 +159,7 @@ exports.proc = proc;
 exports.emitter = emitter;
 exports.logTime = logTime;
 exports.makeParam = makeParam;
+// exports.concatJson = concatJson;
 exports.tryCallback = tryCallback;
 exports.iDontUseTheDevice = iDontUseTheDevice;
 exports.uuidPeripheralToCloud = uuidPeripheralToCloud;
