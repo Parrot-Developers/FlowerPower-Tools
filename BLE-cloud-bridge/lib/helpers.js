@@ -1,6 +1,6 @@
 var events = require('events');
 var clc = require('cli-color');
-var FlowerPower = require('./node-flower-power/index');
+var FlowerPower = require('../node-flower-power/index');
 var Datastore = require('nedb');
 var db = new Datastore({ filename: './database/process.db', autoload: true });
 
@@ -12,41 +12,35 @@ var messColor = {
   'No update required': clc.yellow('No update required'),
   'Updated': clc.green.bold('Updated'),
   'None': clc.xterm(238)('None'),
-  'Not Found': clc.red.bold('Not Found'),
+  'Not found': clc.red.bold('Not found'),
   'Searching': clc.yellow.bold('Searching'),
 }
 
-var debug = false;
+var debug = true;
 emitter.on('process', function(name, proc, pushDb) {
 
-  if (debug) {
-    if (name) {
-      fp[name].process = proc;
-      fp[name].date = new Date().toString().substr(4, 20);
-      console.log(printTimeLog(fp, name));
-    }
+
+    var exepect = [
+      'Updated',
+      'No update required',
+      'Status update',
+      'Failed to status updated'
+      ];
+
+  if (name) {
+    fp[name].process = proc;
+    fp[name].date = new Date().toString().substr(4, 20);
   }
-  else {
-    if (!name) firstEmit = false;
-    else {
-      if (proc == 'Disconnected') {
-        if (fp[name].process != 'No update required' && fp[name].process != 'Updated') {
-          fp[name].process = 'Disconnected for no reason';
-          fp[name].date = new Date().toString().substr(4, 20);
-          pushDb = true;
-        }
-      }
-      else {
-        fp[name].process = proc;
-        fp[name].date = new Date().toString().substr(4, 20);
-      }
-      process.stdout.write(clc.move.up(Object.keys(fp).length));
-    }
+
+  if (!debug) {
+    process.stdout.write(clc.move.up(Object.keys(fp).length));
     for (identifier in fp) {
       process.stdout.write(clc.erase.line);
       console.log(printTimeLog(fp, identifier));
     }
   }
+  else if (name) console.log(printTimeLog(fp, name));
+
   if (pushDb) {
     db.insert({
       name: name,
@@ -58,7 +52,7 @@ emitter.on('process', function(name, proc, pushDb) {
 });
 
 function printTimeLog(fp, identifier) {
-  return ("[" + fp[identifier].date + "]: " + clc.xterm(fp[identifier].color)(identifier + ": ") + ((messColor[fp[identifier].process]) ? messColor[fp[identifier].process] : fp[identifier].process));
+  if (identifier) return ("[" + fp[identifier].date + "]: " + clc.xterm(fp[identifier].color)(identifier + ": ") + ((messColor[fp[identifier].process]) ? messColor[fp[identifier].process] : fp[identifier].process));
 }
 
 function proc(name, proc, pushDb) {
@@ -101,7 +95,9 @@ function makeParam(flowerPower, dataBLE, dataCloud, startIndex) {
   var session = {};
   var uploads = {};
 
-  results["client_datetime_utc"] = new Date().toISOString();
+  var now = new Date();
+
+  results["client_datetime_utc"] = now.toISOString();
   results["user_config_version"] = dataCloud.user_config_version;
   results["plant_science_database_identifier"] = "en_20150210_2.1";
 
@@ -112,7 +108,7 @@ function makeParam(flowerPower, dataBLE, dataCloud, startIndex) {
   session["sample_measure_period"] = dataBLE.history_current_session_period;
 
   uploads["sensor_serial"] = flowerPower.name;
-  uploads["upload_timestamp_utc"] = new Date().toISOString();
+  uploads["upload_timestamp_utc"] = now.toISOString();
   uploads["buffer_base64"] = dataBLE.buffer_base64;
   uploads["app_version"] = "";
   uploads["sensor_fw_version"] = "";

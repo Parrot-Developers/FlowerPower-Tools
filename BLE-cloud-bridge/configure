@@ -4,5 +4,5 @@
 branch="v2";
 
 (git clone -b $branch https://github.com/Parrot-Developers/node-flower-power.git && cd node-flower-power && npm install)
-git clone -b $branch https://github.com/Parrot-Developers/node-flower-power-cloud.git
+(git clone -b $branch https://github.com/Parrot-Developers/node-flower-power-cloud.git && cd node-flower-power-cloud && npm install)
 npm install
