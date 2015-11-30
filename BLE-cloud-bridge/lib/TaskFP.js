@@ -79,22 +79,22 @@ TaskFP.prototype.findAndConnect = function(callbackBind, callback) {
 TaskFP.prototype.search = function(callback) {
   var self = this;
 
-  self.state = 'Searching';
+  self.process.unshift('Searching');
 
   var discover = function(device) {
     if (device.name == self.name) {
       self.FP = device;
       FlowerPower.stopDiscoverAll(discover);
-      self.state = 'Found';
+      self.process.unshift('Found');
       return callback(null, device);
     }
     else self.destroy(device);
   };
   setTimeout(function() {
-    if (self.state == 'Searching') {
-      self.state = 'Not found';
-      FlowerPower.stopDiscoverAll(discover);
+    if (self.process[0] == 'Searching') {
+      self.process.unshift('Not found');
       helpers.proc(self.name, 'Not found', true);
+      FlowerPower.stopDiscoverAll(discover);
       return callback('Not found');
     }
   }, 30000);
@@ -109,31 +109,26 @@ TaskFP.prototype.init = function(callbackBind, callback) {
   self.FP._peripheral.on('disconnect', function() {
     helpers.proc(self.FP.name, 'Disconnected', false);
     helpers.tryCallback(callbackBind);
-    self.state = 'Disconnected';
+    self.process.unshift('Disconnected');
     self.destroy(self.FP);
   });
   self.FP._peripheral.on('connect', function() {
-    self.state = 'Connected';
+    self.process.unshift('Connected');
     helpers.proc(self.FP.name, 'Connected', false);
   });
 
   if (self.FP._peripheral.state == 'disconnected') { // and flags...
-    self.state = 'Available';
+    self.process.unshift('Connection');
     helpers.proc(self.FP.name, 'Connection', false);
     return callback(null);
   }
-  else if (self.FP._peripheral.state == 'disconnected') {
-    self.state = 'Uploaded';
-    helpers.proc(self.FP.name, "No update required");
-    return callback('Uploaded');
-  }
   else if (self.FP._peripheral.state == 'connecting') {
-    self.state = 'Not available';
+    self.process.unshift('Not available');
     helpers.proc(self.FP.name, "is on connection");
     return callback('Connecting');
   }
   else {
-    self.state = 'Not available';
+    self.process.unshift('Not available ' + + self.FP._peripheral.state);
     helpers.proc(self.FP.name, 'is not available: ' + self.FP._peripheral.state, true);
     return callback('Not available');
   }
@@ -143,9 +138,9 @@ TaskFP.prototype.connect = function(callback) {
   var self = this;
 
   setTimeout(function() {
-    if (self.state == 'Available') {
+    if (self.process[0] == 'Connection') {
       helpers.proc(self.FP.name, 'Connection failed', true);
-      self.state = 'Connection failed';
+      self.process.unshift('Connection failed');
       self.destroy(self.FP);
       throw (self.FP.name + ': Connection failed');
     }
@@ -160,7 +155,6 @@ TaskFP.prototype.disconnect = function(callback) {
   var self = this;
 
   self.FP.disconnect(function() {
-    self.state = 'standby';
     if (typeof callback == 'function') return callback(null);
   });
 }
@@ -174,7 +168,7 @@ TaskFP.prototype.destroy = function(device) {
 TaskFP.prototype.getSamples = function(callback) {
   var self = this;
 
-  self.state = 'Getting samples';
+  self.process.unshift('Getting samples');
   self.readDataBLE([
     'history_nb_entries',
     'history_last_entry_index',
@@ -191,12 +185,8 @@ TaskFP.prototype.getSamples = function(callback) {
 
     dataBLE.hardware_version = hw_v.substr(0, (hw_v.indexOf('\u0000')) ? hw_v.indexOf('\u0000') : hw_v.length);
     dataBLE.firmware_version = fw_v.substr(0, (fw_v.indexOf('\u0000')) ? fw_v.indexOf('\u0000') : fw_v.length);
-    console.log(dataBLE);
     var firstEntryIndex = dataBLE.history_last_entry_index - dataBLE.history_nb_entries + 1;
-    console.log('First:', firstEntryIndex);
-    console.log('Cloud:', cloudIndex);
     var startIndex = ((cloudIndex >= firstEntryIndex) ? cloudIndex : firstEntryIndex) - 10;
-    console.log('start:', startIndex);
     self.FP.getHistory(startIndex, function(error, history) {
       dataBLE.buffer_base64 = history;
       return callback(error, dataBLE);
@@ -207,7 +197,7 @@ TaskFP.prototype.getSamples = function(callback) {
 TaskFP.prototype.getStatusWatering = function(callback) {
   var self = this;
 
-  self.state = 'Getting status watering';
+  self.process.unshift('Getting status watering');
   var watering = {};
 
   if (self.FP.type == 'Pot' || self.FP.type == 'H2o') {

@@ -94,7 +94,6 @@ Pannel.prototype._makeQueud = function(user) {
         self.syncFlowerPower(FP, callback);
       }
     ], function(err, results) {
-      console.log(err);
       if (err != 'Not found') FP.disconnect();
       else callbackNext();
     });
@@ -129,11 +128,9 @@ Pannel.prototype._makeQueud = function(user) {
 Pannel.prototype.syncFlowerPower = function(FP, callback) {
   async.series([
     function(callback) {
-      console.log('Sync Status!');
       FP.syncStatus(callback);
     },
     function(callback) {
-      console.log('Sync Samples!');
       FP.syncSamples(callback);
     }
   ], function(err, results) {

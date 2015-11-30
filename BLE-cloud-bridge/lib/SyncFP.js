@@ -5,6 +5,7 @@ function SyncFP(flowerPowerName, user, api) {
   TaskFP.call(this, flowerPowerName);
   this.user = user;
   this.api = api;
+  this.process = [];
 }
 
 SyncFP.prototype = new TaskFP;
@@ -13,8 +14,7 @@ SyncFP.prototype.syncSamples = function(callback) {
   var self = this;
 
   self.getSamples(function(err, dataBLE) {
-    self.state = 'Sending samples';
-    console.log(self.state);
+    self.process.unshift('Sending samples');
     var param = {};
     var session = {};
     var uploads = {};
@@ -40,7 +40,7 @@ SyncFP.prototype.syncSamples = function(callback) {
     param["session_histories"] = [session];
     param["uploads"] = [uploads];
 
-    console.log(param);
+    // console.log(param);
     self.api.sendSamples(param, function(error, resutls) {
       if (!error) {
         self.state = 'Updated';
@@ -60,9 +60,8 @@ SyncFP.prototype.syncStatus = function(callback) {
   var self = this;
 
   self.getStatusWatering(function(err, watering) {
-    console.log(watering);
-    self.state = 'Sending status watering';
-    console.log(self.state);
+    // console.log(watering);
+    self.process.unshift('Sending status watering');
     var param = {};
     var update_status = {};
     var now = new Date();
@@ -74,7 +73,6 @@ SyncFP.prototype.syncStatus = function(callback) {
     update_status['watering'] = watering;
 
     param['update_status'] = [update_status];
-    console.log(param);
     self.api.sendGardenStatus(param, function(error, results) {
       if (!error) {
         self.state = 'Status updated';

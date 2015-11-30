@@ -11,6 +11,8 @@ var messColor = {
   'Connected': clc.green('Connected'),
   'No update required': clc.yellow('No update required'),
   'Updated': clc.green.bold('Updated'),
+  'Status updated': clc.green.bold('Status updated'),
+  'Failed to status updated': clc.red.bold('Failed to status updated'),
   'None': clc.xterm(238)('None'),
   'Not found': clc.red.bold('Not found'),
   'Searching': clc.yellow.bold('Searching'),
@@ -19,19 +21,16 @@ var messColor = {
 var debug = true;
 emitter.on('process', function(name, proc, pushDb) {
 
-
-    var exepect = [
-      'Updated',
-      'No update required',
-      'Status update',
-      'Failed to status updated'
-      ];
-
+  var exepect = [
+    'Updated',
+    'No update required',
+    'Status update',
+    'Failed to status updated'
+  ];
   if (name) {
     fp[name].process = proc;
     fp[name].date = new Date().toString().substr(4, 20);
   }
-
   if (!debug) {
     process.stdout.write(clc.move.up(Object.keys(fp).length));
     for (identifier in fp) {
