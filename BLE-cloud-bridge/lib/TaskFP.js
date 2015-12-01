@@ -247,10 +247,9 @@ TaskFP.prototype.getStatusWatering = function(callback) {
             'watering_algorithm_status',
             'water_tank_level'
           ]).then(function(dataWatering) {
-            watering['automatic_watering']['next_watering_datetime_utc'] = (dataPlantDoctor.next_watering_date) ? dataPlantDoctor.next_watering_date.toISOString() : null;
-            watering['automatic_watering']['predicted_action_datetime_utc'] = (dataPlantDoctor.next_empty_tank_date) ? dataPlantDoctor.next_empty_tank_date.toISOString() : null;
-            watering['automatic_watering']['full_autonomy_days'] = (dataPlantDoctor.full_tank_autonomy) ? dataPlantDoctor.full_tank_autonomy : null;
-
+            watering['automatic_watering']['next_watering_datetime_utc'] = (dataWatering.next_watering_date) ? dataWatering.next_watering_date.toISOString() : null;
+            watering['automatic_watering']['predicted_action_datetime_utc'] = (dataWatering.next_empty_tank_date) ? dataWatering.next_empty_tank_date.toISOString() : null;
+            watering['automatic_watering']['full_autonomy_days'] = (dataWatering.full_tank_autonomy) ? dataWatering.full_tank_autonomy : null;
             if (dataWatering.watering_mode == 'Manual') return callback(null, watering);
             else {
               watering['automatic_watering']['current_water_level'] = dataWatering.water_tank_level;
@@ -258,11 +257,11 @@ TaskFP.prototype.getStatusWatering = function(callback) {
               if (dataWatering.watering_algorithm_status == 'Error vwc still') watering['automatic_watering']['instruction_key'] = 'automatic_watering_check_system';
               else if (dataWatering.watering_algorithm_status == 'Error internal') watering['automatic_watering']['instruction_key'] = 'automatic_watering_unkwown_error';
               else {
-                if (dataPlantDoctor.status_flags['Sensor in air']) {
+                if (dataFlags.status_flags['Sensor in air']) {
                   watering['automatic_watering']['status_key'] = 'status_warning';
                   watering['automatic_watering']['instruction_key'] = 'automatic_watering_in_air';
                 }
-                else if (dataPlantDoctor.status_flags['Tank empty']) {
+                else if (dataFlags.status_flags['Tank empty']) {
                   watering['automatic_watering']['status_key'] = 'status_critical';
                   watering['automatic_watering']['instruction_key'] = 'automatic_watering_reserve_empty';
                 }
