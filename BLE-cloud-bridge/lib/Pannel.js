@@ -81,6 +81,7 @@ Pannel.prototype.processAll = function() {
 Pannel.prototype._makeQueud = function(user) {
   var self = this;
   var typeFilter = [];
+  var fpPriority = [];
 
   helpers.logTime(clc.yellow('New scan for', clc.bold(Object.keys(user.sensors).length), "sensors"));
   var q = async.queue(function(task, callbackNext) {
@@ -103,6 +104,10 @@ Pannel.prototype._makeQueud = function(user) {
   q.drain = function() {
     helpers.logTime('All FlowerPowers have been processed\n');
     self._state = 'off';
+  }
+
+  for (var i = 0; i < fpPriority.length; i++) {
+	q.push({name: fpPriority[i]});
   }
 
   for (var identifier in user.sensors) {
