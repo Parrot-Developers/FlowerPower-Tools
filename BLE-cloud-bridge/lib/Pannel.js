@@ -54,17 +54,20 @@ Pannel.prototype.getUser = function(callback) {
 }
 
 
-Pannel.prototype.automatic = function(delay) {
+Pannel.prototype.automatic = function(options) {
   var self = this;
+  var delay = 15 * 60 * 1000;
 
-  if (typeof delay == 'undefined') delay = 15 * 60 * 1000;
-  self.processAll();
+  if (typeof options != 'undefined' && typeof options['delay'] != 'undefinded') {
+	  delay = options['delay'] * 60 * 1000;
+  }
+  self.processAll(options);
   setInterval(function() {
-    self.processAll();
+    self.processAll(options);
   }, delay);
 }
 
-Pannel.prototype.processAll = function() {
+Pannel.prototype.processAll = function(options) {
   var self = this;
 
   if (self._state == 'off') {
@@ -72,16 +75,21 @@ Pannel.prototype.processAll = function() {
 
     self.getUser(function(err, user) {
       if (err) helpers.logTime('Error in getInformationsCloud');
-      else self._makeQueud(user);
+      else self._makeQueud(user, options);
     });
 
   }
 }
 
-Pannel.prototype._makeQueud = function(user) {
+Pannel.prototype._makeQueud = function(user, options) {
   var self = this;
   var typeFilter = [];
   var fpPriority = [];
+
+  if (typeof options != 'undefined') {
+	if (typeof options['type'] != 'undefined') typeFilter = options['type'];
+	if (typeof options['priority'] != 'undefined') fpPriority = options['priority'];
+  }
 
   helpers.logTime(clc.yellow('New scan for', clc.bold(Object.keys(user.sensors).length), "sensors"));
   var q = async.queue(function(task, callbackNext) {
