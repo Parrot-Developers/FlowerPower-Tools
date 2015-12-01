@@ -226,31 +226,31 @@ TaskFP.prototype.getStatusWatering = function(callback) {
     if (self.FP.generation == 1) return callback(null, watering);
     else if (self.FP.generation == 2) {
       self.readDataBLE([
-        'next_watering_date',
-        'next_empty_tank_date',
-        'full_tank_autonomy',
         'status_flags'
-      ]).then(function(dataPlantDoctor) {
-        if (dataPlantDoctor.status_flags['Soil dry'] && !dataPlantDoctor.status_flags['Soil wet']) {
+      ]).then(function(dataFlags) {
+        if (dataFlags.status_flags['Soil dry'] && !dataFlags.status_flags['Soil wet']) {
           watering['soil_moisture']['status_key'] = 'status_critical';
           watering['soil_moisture']['instruction_key'] = 'soil_moisture_too_low';
         }
-        else if (!dataPlantDoctor.status_flags['Soil dry'] && dataPlantDoctor.status_flags['Soil wet']) {
+        else if (!dataFlags.status_flags['Soil dry'] && dataFlags.status_flags['Soil wet']) {
           watering['soil_moisture']['status_key'] = 'status_warning';
           watering['soil_moisture']['instruction_key'] = 'soil_moisture_too_high';
         }
 
-        watering['automatic_watering']['next_watering_datetime_utc'] = (dataPlantDoctor.next_watering_date) ? dataPlantDoctor.next_watering_date.toISOString() : null;
-        watering['automatic_watering']['predicted_action_datetime_utc'] = (dataPlantDoctor.next_empty_tank_date) ? dataPlantDoctor.next_empty_tank_date.toISOString() : null;
-        watering['automatic_watering']['full_autonomy_days'] = (dataPlantDoctor.full_tank_autonomy) ? dataPlantDoctor.full_tank_autonomy : null;
-
         if (self.FP.type == 'Flower power') return callback(null, watering);
         else {
           self.readDataBLE([
+            'next_watering_date',
+            'next_empty_tank_date',
+            'full_tank_autonomy',
             'watering_mode',
             'watering_algorithm_status',
             'water_tank_level'
           ]).then(function(dataWatering) {
+            watering['automatic_watering']['next_watering_datetime_utc'] = (dataPlantDoctor.next_watering_date) ? dataPlantDoctor.next_watering_date.toISOString() : null;
+            watering['automatic_watering']['predicted_action_datetime_utc'] = (dataPlantDoctor.next_empty_tank_date) ? dataPlantDoctor.next_empty_tank_date.toISOString() : null;
+            watering['automatic_watering']['full_autonomy_days'] = (dataPlantDoctor.full_tank_autonomy) ? dataPlantDoctor.full_tank_autonomy : null;
+
             if (dataWatering.watering_mode == 'Manual') return callback(null, watering);
             else {
               watering['automatic_watering']['current_water_level'] = dataWatering.water_tank_level;
