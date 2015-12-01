@@ -80,12 +80,14 @@ TaskFP.prototype.search = function(callback) {
   var self = this;
 
   self.process.unshift('Searching');
+  helpers.proc(self.name, 'Searching');
 
   var discover = function(device) {
     if (device.name == self.name) {
       self.FP = device;
       FlowerPower.stopDiscoverAll(discover);
       self.process.unshift('Found');
+	  helpers.proc(self.FP.name, 'Found');
       return callback(null, device);
     }
     else self.destroy(device);
@@ -99,7 +101,6 @@ TaskFP.prototype.search = function(callback) {
     }
   }, 30000);
 
-  helpers.proc(self.name, 'Searching', false);
   FlowerPower.discoverAll(discover);
 }
 
@@ -107,9 +108,9 @@ TaskFP.prototype.init = function(callbackBind, callback) {
   var self = this;
 
   self.FP._peripheral.on('disconnect', function() {
+    self.process.unshift('Disconnected');
     helpers.proc(self.FP.name, 'Disconnected', false);
     helpers.tryCallback(callbackBind);
-    self.process.unshift('Disconnected');
     self.destroy(self.FP);
   });
   self.FP._peripheral.on('connect', function() {
@@ -139,8 +140,8 @@ TaskFP.prototype.connect = function(callback) {
 
   setTimeout(function() {
     if (self.process[0] == 'Connection') {
-      helpers.proc(self.FP.name, 'Connection failed', true);
       self.process.unshift('Connection failed');
+      helpers.proc(self.FP.name, 'Connection failed', true);
       self.destroy(self.FP);
       throw (self.FP.name + ': Connection failed');
     }
@@ -169,6 +170,7 @@ TaskFP.prototype.getSamples = function(callback) {
   var self = this;
 
   self.process.unshift('Getting samples');
+  helpers.proc(self.FP.name, 'Getting samples', false);
   self.readDataBLE([
     'history_nb_entries',
     'history_last_entry_index',
@@ -198,6 +200,7 @@ TaskFP.prototype.getStatusWatering = function(callback) {
   var self = this;
 
   self.process.unshift('Getting status watering');
+  helpers.proc(self.FP.name, 'Getting status watering', false);
   var watering = {};
 
   if (self.FP.type == 'Pot' || self.FP.type == 'H2o') {
