@@ -188,7 +188,7 @@ TaskFP.prototype.getSamples = function(callback) {
     dataBLE.hardware_version = hw_v.substr(0, (hw_v.indexOf('\u0000')) ? hw_v.indexOf('\u0000') : hw_v.length);
     dataBLE.firmware_version = fw_v.substr(0, (fw_v.indexOf('\u0000')) ? fw_v.indexOf('\u0000') : fw_v.length);
     var firstEntryIndex = dataBLE.history_last_entry_index - dataBLE.history_nb_entries + 1;
-    var startIndex = ((cloudIndex >= firstEntryIndex) ? cloudIndex : firstEntryIndex) - 10;
+    var startIndex = ((cloudIndex >= firstEntryIndex) ? cloudIndex : firstEntryIndex);
     self.FP.getHistory(startIndex, function(error, history) {
       dataBLE.buffer_base64 = history;
       return callback(error, dataBLE);
