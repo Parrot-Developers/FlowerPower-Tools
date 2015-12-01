@@ -15,7 +15,7 @@ SyncFP.prototype.syncSamples = function(callback) {
 
   self.getSamples(function(err, dataBLE) {
     self.process.unshift('Sending samples');
-	helpers.proc(self.FP.name, 'Sending samples', false);
+    helpers.proc(self.FP.name, 'Sending samples', false);
     var param = {};
     var session = {};
     var uploads = {};
@@ -49,7 +49,7 @@ SyncFP.prototype.syncSamples = function(callback) {
       }
       else {
         self.state = 'Failed to updated';
-        console.log(error);
+        // console.log(error);
         helpers.proc(self.FP.name, 'Failed to updated', true);
       }
       return callback(error, resutls);
@@ -61,9 +61,8 @@ SyncFP.prototype.syncStatus = function(callback) {
   var self = this;
 
   self.getStatusWatering(function(err, watering) {
-    // console.log(watering);
     self.process.unshift('Sending status watering');
-	helpers.proc(self.FP.name, 'Sending status watering', false);
+    helpers.proc(self.FP.name, 'Sending status watering', false);
     var param = {};
     var update_status = {};
     var now = new Date();

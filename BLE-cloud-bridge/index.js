@@ -7,12 +7,12 @@ var Parrot = new CloudAPI(credentials.url);
 var myPannel = new Pannel(Parrot);
 delete credentials.url;
 
-
 var options = {
-	delay: 1,
-	type: ['pot'],
-	priority: ['Flower power 0CB8']
-}
+	delay: 15,
+	type: [],
+	priority: []
+};
+
 myPannel.loginToApi(credentials, function(err, res){
   myPannel.automatic(options);
 });
