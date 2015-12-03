@@ -15,6 +15,7 @@ var messColor = {
 	'Failed to status updated': clc.red.bold('Failed to status updated'),
 	'None': clc.xterm(238)('None'),
 	'Not found': clc.red.bold('Not found'),
+	'Disconnected': clc.yellow.blod('Disconnected'),
 	'Searching': clc.yellow.bold('Searching'),
 }
 
@@ -30,6 +31,7 @@ emitter.on('process', function(name, proc, pushDb) {
 		else if (proc == 'Disconnected' && exepect.indexOf(fp[name].process) == -1) {
 			fp[name].process = proc;
 			fp[name].date = new Date().toString().substr(4, 20);
+			pushDb = true;
 		}
 	}
 	if (!debug) {
