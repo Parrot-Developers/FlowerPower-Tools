@@ -75,8 +75,10 @@ var messColor = {
   'Connected': clc.green('Connected'),
   'No update required': clc.yellow('No update required'),
   'Updated': clc.green.bold('Updated'),
+	'Status updated': clc.green.bold('Status updated'),
+	'Failed to update status': clc.red.bold('Failed to update status'),
   'None': clc.xterm(238)('None'),
-  'Not Found': clc.red.bold('Not Found'),
+  'Not found': clc.red.bold('Not found'),
   'Searching': clc.yellow.bold('Searching'),
 }
 var argv = process.argv;

@@ -8,7 +8,7 @@ var myPannel = new Pannel(Parrot);
 delete credentials.url;
 
 var options = {
-	delay: 15,
+	delay: 1,
 	type: [],
 	priority: []
 };
