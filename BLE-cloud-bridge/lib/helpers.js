@@ -15,7 +15,7 @@ var messColor = {
 	'Failed to status updated': clc.red.bold('Failed to status updated'),
 	'None': clc.xterm(238)('None'),
 	'Not found': clc.red.bold('Not found'),
-	'Disconnected': clc.yellow.blod('Disconnected'),
+	'Disconnected': clc.yellow.bold('Disconnected'),
 	'Searching': clc.yellow.bold('Searching'),
 }
 
@@ -41,8 +41,13 @@ emitter.on('process', function(name, proc, pushDb) {
 			console.log(printTimeLog(fp, identifier));
 		}
 	}
-	else if (name) console.log(printTimeLog(fp, name));
-
+	else if (name && proc != 'Disconnected') {
+		console.log(printTimeLog(fp, name));
+	}
+	else if (name && proc == 'Disconnected' && exepect.indexOf(fp[name].process) == -1) {
+		console.log(printTimeLog(fp, name));
+	}
+		
 	if (pushDb) {
 		db.insert({
 			name: name,
