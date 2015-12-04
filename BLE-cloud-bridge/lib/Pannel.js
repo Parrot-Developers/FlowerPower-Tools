@@ -1,5 +1,5 @@
 var SyncFP = require('./SyncFP');
-
+var CloudAPI = require('../node-flower-power-cloud/FlowerPowerCloud');
 var helpers = require('./helpers');
 var async = require('async');
 var clc = require('cli-color');
@@ -9,10 +9,10 @@ var chance = new Chance();
 
 // Load page getUser
 // When automatic process getUser to create Queud and make param for API
-function Pannel(api) {
+function Pannel(url) {
 	this._state = 'off';
 	this.user = null;
-	this.api = api;
+	this.api = new CloudAPI(url);
 }
 
 Pannel.prototype.loginToApi = function(credentials, callback) {

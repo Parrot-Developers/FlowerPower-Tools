@@ -1,10 +1,7 @@
-var Pannel = require('./lib/Pannel');
-
-var CloudAPI = require('./node-flower-power-cloud/FlowerPowerCloud');
+var Bridge = require('./lib/Pannel');
 var credentials = require('./credentials');
 
-var Parrot = new CloudAPI(credentials.url);
-var myPannel = new Pannel(Parrot);
+var brooklyn = new Bridge(credentials.url);
 delete credentials.url;
 
 var options = {
@@ -13,6 +10,6 @@ var options = {
 	priority: []
 };
 
-myPannel.loginToApi(credentials, function(err, res){
-  myPannel.automatic(options);
+brooklyn.loginToApi(credentials, function(err, res){
+  brooklyn.automatic(options);
 });

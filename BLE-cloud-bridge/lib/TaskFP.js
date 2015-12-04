@@ -129,7 +129,7 @@ TaskFP.prototype.init = function(callbackBind, callback) {
 		return callback('Connecting');
 	}
 	else {
-		self.process.unshift('Not available ' + + self.FP._peripheral.state);
+		self.process.unshift('Not available ' + self.FP._peripheral.state);
 		helpers.proc(self.FP.name, 'is not available: ' + self.FP._peripheral.state, true);
 		return callback('Not available');
 	}

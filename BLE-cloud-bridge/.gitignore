@@ -1,0 +1,6 @@
+*.swp
+credentials.json
+database
+node-*
+node_modules
+trace.log

@@ -41,8 +41,8 @@ function usage() {
   console.log();
   console.log('EXAMPLES:');
   console.log("\tsudo ./updatedb all\t\t\t: 10 last process");
-  console.log("\tsudo ./updatedb proc=\"Parrot pot abc0\"\t: last process of this Pot");
-  console.log("\tsudo ./updatedb proc=\"Flower power ABC0\" proc=\"Updated\" 5\t: Show 5 last update for this Flower Power");
+  console.log("\tsudo ./updatedb name=\"Parrot pot abc0\"\t: last process of this Pot");
+  console.log("\tsudo ./updatedb name=\"Flower power ABC0\" proc=\"Updated\" 5\t: Show 5 last update for this Flower Power");
   console.log();
   console.log("AUTHOR:");
   console.log("\tWritten by Bruno Sautron.");
