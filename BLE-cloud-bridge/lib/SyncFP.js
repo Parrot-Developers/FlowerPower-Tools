@@ -14,6 +14,7 @@ SyncFP.prototype.syncSamples = function(callback) {
 	var self = this;
 
 	self.getSamples(function(err, dataBLE) {
+		if (err) return callback(err, null);
 		self.process.unshift('Sending samples');
 		helpers.proc(self.FP.name, 'Sending samples', false);
 		var param = {};
