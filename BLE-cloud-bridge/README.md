@@ -49,10 +49,10 @@ $ ./configure
 To communicate with your Flower Powers, edit `credentials.json`:
 ```javascript
 {
-	"clientID": "...",
-	"clientSecret": "...",
+	"client_id": "...",
+	"client_secret": "...",
 	"username": "...",
-	"passphrase": "..."
+	"password": "..."
 }
 ```
 And finaly, you can walk on the brigde.
