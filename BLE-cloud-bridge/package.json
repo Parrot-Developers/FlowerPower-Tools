@@ -1,17 +1,17 @@
 {
-  "name": "Flower-Bridge",
-  "version": "1.2.1",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo 'test' && exit 0"
-  },
-  "author": "Bruno Sautron",
-  "license": "ISC",
-  "dependencies": {
-    "async": "*",
-    "chance": "*",
-    "cli-color": "*",
-    "nedb": "^1.2.1"
-  }
+	"name": "Flower-Bridge",
+	"version": "0.2.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo 'test' && exit 0"
+	},
+	"author": "Bruno Sautron",
+	"license": "ISC",
+	"dependencies": {
+		"async": "*",
+		"chance": "*",
+		"cli-color": "*",
+		"nedb": "^1.2.1"
+	}
 }

@@ -48,7 +48,6 @@ SyncFP.prototype.syncSamples = function(callback) {
 			}
 			else {
 				self.state = 'Failed to updated';
-				// console.log(error);
 				helpers.proc(self.FP.uuid, 'Failed to updated', true);
 			}
 		return callback(error, resutls);

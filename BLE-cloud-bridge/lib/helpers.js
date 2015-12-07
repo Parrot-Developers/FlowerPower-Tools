@@ -17,7 +17,7 @@ var messColor = {
 	'Searching': clc.yellow.bold('Searching'),
 }
 
-var debug = true;
+var debug = false;
 emitter.on('process', function(uuid, proc, pushDb) {
 
 	var exepect = ['Updated', 'No update required'];
@@ -33,7 +33,7 @@ emitter.on('process', function(uuid, proc, pushDb) {
 		}
 	}
 	if (!debug) {
-		process.stdout.write(clc.move.up(Object.keys(fp).length));
+		if (uuid) process.stdout.write(clc.move.up(Object.keys(fp).length));
 		for (identifier in fp) {
 			process.stdout.write(clc.erase.line);
 			console.log(printTimeLog(fp, identifier));
@@ -45,7 +45,7 @@ emitter.on('process', function(uuid, proc, pushDb) {
 	else if (uuid && proc == 'Disconnected' && exepect.indexOf(fp[uuid].process) == -1) {
 		console.log(printTimeLog(fp, uuid));
 	}
-		
+
 	if (pushDb) {
 		db.insert({
 			uuid: uuid,
@@ -118,11 +118,11 @@ function tryCallback(callback, error, data) {
 }
 
 function uuidPeripheralToCloud(uuid) {
-	  return ((uuid.substr(0, 6) + '0000' + uuid.substr(6, 6)).toUpperCase());
+	return ((uuid.substr(0, 6) + '0000' + uuid.substr(6, 6)).toUpperCase());
 }
 
 function uuidCloudToPeripheral(uuid) {
-	  return (uuid.substr(0, 6).toLowerCase() + uuid.substr(10, 6).toLowerCase());
+	return (uuid.substr(0, 6).toLowerCase() + uuid.substr(10, 6).toLowerCase());
 }
 
 exports.fp = fp;
