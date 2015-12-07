@@ -4,7 +4,7 @@ var credentials = require('./credentials');
 var brooklyn = new Bridge();
 
 var options = {
-	delay: 1,
+	delay: 15,
 	priority: []
 };
 

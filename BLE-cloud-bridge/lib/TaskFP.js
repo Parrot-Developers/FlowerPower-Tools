@@ -111,7 +111,7 @@ TaskFP.prototype.init = function(callbackBind, callback) {
 		helpers.proc(self.FP.uuid, 'Connected', false);
 	});
 
-	if (self.FP._peripheral.state == 'disconnected') { // and flags...
+	if (self.FP._peripheral.state == 'disconnected') {
 		self.process.unshift('Connection');
 		helpers.proc(self.FP.uuid, 'Connection', false);
 		return callback(null);
