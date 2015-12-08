@@ -9,5 +9,8 @@ var options = {
 };
 
 brooklyn.loginToApi(credentials, function(err, res){
-	brooklyn.automatic(options);
+	if (err) console.log(err);
+	else {
+		brooklyn.automatic(options);
+	}
 });
