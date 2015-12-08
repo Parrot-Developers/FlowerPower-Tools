@@ -69,7 +69,10 @@ TaskFP.prototype.findAndConnect = function(callbackBind, callback) {
 					self.connect(callback);
 				}
 				], function(err) {
-					if (err) self.destroy(device);
+					if (err) {
+						self.destroy(device);
+						helpers.tryCallback(callbackBind);
+					}
 					return callback(err, null);
 				});
 		}
