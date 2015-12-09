@@ -107,7 +107,7 @@ Pannel.prototype._makeQueud = function(user, options) {
 			}
 			], function(err, results) {
 				if (err != 'Not found') FP.disconnect();
-				else callbackNext();
+				helpers.tryCallback(callbackNext());
 			});
 
 	}, 1);
