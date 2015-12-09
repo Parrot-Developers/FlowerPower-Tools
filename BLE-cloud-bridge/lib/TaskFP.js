@@ -1,9 +1,12 @@
 var async = require('async');
+var clc = require('cli-color');
+var util = require('util');
+var EventEmitter = require('events');
 var helpers = require('./helpers');
 var FlowerPower = require('../node-flower-power/index');
-var clc = require('cli-color');
 
 function TaskFP(flowerPowerUuid) {
+	EventEmitter.call(this);
 	this.uuid = flowerPowerUuid;
 	this.FP = null;
 	this.state = 'standby';
@@ -20,7 +23,20 @@ function TaskFP(flowerPowerUuid) {
 	};
 
 	return this;
-}
+};
+
+util.inherits(TaskFP, EventEmitter);
+
+TaskFP.prototype.proc = function(processMsg, pushDb) {
+	var self = this;
+
+	self.process.unshift(processMsg);
+	self.emit('process', {
+		uuid: self.uuid,
+		state: processMsg,
+		date: new Date()
+	});
+};
 
 TaskFP.prototype.readDataBLE = function(keys) {
 	var self = this;
@@ -41,22 +57,17 @@ TaskFP.prototype.readDataBLE = function(keys) {
 			else resolve(results);
 		});
 	});
-}
+};
 
-TaskFP.prototype.findAndConnect = function(callbackBind, callback) {
+TaskFP.prototype.findAndConnect = function(callback) {
 	var self = this;
-
-	if (typeof callback == 'undefined') {
-		callback = callbackBind;
-		callbackBind = null;
-	}
 
 	self.search(function(err, device) {
 		if (err) return callback(err);
 		else {
 			async.series([
 				function(callback) {
-					self.init(callbackBind, callback);
+					self.init(callback);
 				},
 				function(callback) {
 					self.connect(callback);
@@ -67,74 +78,64 @@ TaskFP.prototype.findAndConnect = function(callbackBind, callback) {
 				});
 		}
 	});
-}
+};
 
 TaskFP.prototype.search = function(callback) {
 	var self = this;
 
-	self.process.unshift('Searching');
-	helpers.proc(self.uuid, 'Searching');
-
+	self.proc('Searching');
 	var discover = function(device) {
 		if (device.uuid == self.uuid) {
 			self.FP = device;
 			FlowerPower.stopDiscoverAll(discover);
-			self.process.unshift('Found');
-			helpers.proc(self.FP.uuid, 'Found');
+			self.proc('Found');
 			return callback(null, device);
 		}
 		else self.destroy(device);
 	};
 	setTimeout(function() {
 		if (self.process[0] == 'Searching') {
-			self.process.unshift('Not found');
-			helpers.proc(self.uuid, 'Not found', true);
 			FlowerPower.stopDiscoverAll(discover);
+			self.proc('Not found', true);
 			return callback('Not found');
 		}
-	}, 30000);
+	}, 10000);
 
 	FlowerPower.discoverAll(discover);
-}
+};
 
-TaskFP.prototype.init = function(callbackBind, callback) {
+TaskFP.prototype.init = function(callback) {
 	var self = this;
 
 	self.FP._peripheral.on('disconnect', function() {
-		self.process.unshift('Disconnected');
-		helpers.proc(self.FP.uuid, 'Disconnected', false);
-		helpers.tryCallback(callbackBind);
+		self.proc('Disconnected');
 		self.destroy(self.FP);
 	});
 	self.FP._peripheral.on('connect', function() {
 		self.process.unshift('Connected');
-		helpers.proc(self.FP.uuid, 'Connected', false);
+		self.proc('Connected');
 	});
 
 	if (self.FP._peripheral.state == 'disconnected') {
-		self.process.unshift('Connection');
-		helpers.proc(self.FP.uuid, 'Connection', false);
+		self.proc('Connection');
 		return callback(null);
 	}
 	else if (self.FP._peripheral.state == 'connecting') {
-		self.process.unshift('Not available');
-		helpers.proc(self.FP.uuid, "is on connection");
+		self.proc('Not availaible: is on connection');
 		return callback('Connecting');
 	}
 	else {
-		self.process.unshift('Not available ' + self.FP._peripheral.state);
-		helpers.proc(self.FP.uuid, 'is not available: ' + self.FP._peripheral.state, true);
+		self.proc('Not available: ' + self.FP._peripheral.state, true);
 		return callback('Not available');
 	}
-}
+};
 
 TaskFP.prototype.connect = function(callback) {
 	var self = this;
 
 	setTimeout(function() {
 		if (self.process[0] == 'Connection') {
-			self.process.unshift('Connection failed');
-			helpers.proc(self.FP.uuid, 'Connection failed', true);
+			self.proc('Connection failed', true);
 			self.destroy(self.FP);
 			throw (self.FP.uuid + ': Connection failed');
 		}
@@ -143,7 +144,7 @@ TaskFP.prototype.connect = function(callback) {
 	self.FP.connectAndSetup(function() {
 		return callback(null);
 	});
-}
+};
 
 TaskFP.prototype.disconnect = function(callback) {
 	var self = this;
@@ -151,19 +152,18 @@ TaskFP.prototype.disconnect = function(callback) {
 	self.FP.disconnect(function() {
 		if (typeof callback == 'function') return callback(null);
 	});
-}
+};
 
 TaskFP.prototype.destroy = function(device) {
 	device._peripheral.removeAllListeners();
 	device.removeAllListeners();
 	device = null;
-}
+};
 
 TaskFP.prototype.getSamples = function(callback) {
 	var self = this;
 
-	self.process.unshift('Getting samples');
-	helpers.proc(self.FP.uuid, 'Getting samples', false);
+	self.proc('Getting samples');
 	self.readDataBLE([
 			'history_nb_entries',
 			'history_last_entry_index',
@@ -184,8 +184,7 @@ TaskFP.prototype.getSamples = function(callback) {
 				dataBLE.firmware_version = fw_v.substr(0, (fw_v.indexOf('\u0000')) ? fw_v.indexOf('\u0000') : fw_v.length);
 
 				if (startIndex > dataBLE.history_last_entry_index) {
-					self.process.unshift('No update required');
-					helpers.proc(self.FP.uuid, 'No update required', true);
+					self.proc('No update required', true);
 					return callback('No update required');
 				}
 				self.FP.getHistory(startIndex, function(error, history) {
@@ -193,6 +192,6 @@ TaskFP.prototype.getSamples = function(callback) {
 					return callback(error, dataBLE);
 				});
 			});
-}
+};
 
 module.exports = TaskFP;

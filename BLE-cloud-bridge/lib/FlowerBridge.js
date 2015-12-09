@@ -1,38 +1,36 @@
 var SyncFP = require('./SyncFP');
 var FlowerPowerCloud = require('../node-flower-power-cloud/FlowerPowerCloud');
 var helpers = require('./helpers');
+var util = require('util');
 var async = require('async');
+var EventEmitter = require('events');
 var clc = require('cli-color');
 var Chance = require('chance');
 var chance = new Chance();
 
-
-// Load page getUser
-// When automatic process getUser to create Queud and make param for API
-function Pannel() {
+function FlowerBridge() {
+	EventEmitter.call(this);
 	this._state = 'off';
 	this.user = null;
 	this.api = new FlowerPowerCloud();
 }
 
-Pannel.prototype.loginToApi = function(credentials, callback) {
-	this.api.login(credentials, callback);
-}
+util.inherits(FlowerBridge, EventEmitter);
 
-Pannel.prototype.getState = function() {
-	return (this._state);
-}
+FlowerBridge.prototype.loginToApi = function(credentials, callback) {
+	var self = this;
 
-Pannel.prototype._init = function() {
-	this.getUser(function(err, user) {
-		if (err) helpers.logTime('Error in getInformationsCloud');
-		else {
-			console.log('Init');
-		}
+	this.api.login(credentials, function(err, token) {
+		if (!err) self.emit('login', token);
+		if (typeof callback != 'undefined') callback(err, token);
 	});
 }
 
-Pannel.prototype.getUser = function(callback) {
+FlowerBridge.prototype.getState = function() {
+	return (this._state);
+}
+
+FlowerBridge.prototype.getUser = function(callback) {
 	var self = this;
 
 	async.parallel({
@@ -58,8 +56,18 @@ Pannel.prototype.getUser = function(callback) {
 	});
 }
 
+FlowerBridge.prototype.proc = function(process, pushDb) {
+	var self = this;
 
-Pannel.prototype.automatic = function(options) {
+	self.process.unshift(process);
+	self.emit('process', {
+		uuid: self.uuid,
+		state: process,
+		date: new Date()
+	});
+}
+
+FlowerBridge.prototype.automatic = function(options) {
 	var self = this;
 	var delay = 15;
 
@@ -73,7 +81,7 @@ Pannel.prototype.automatic = function(options) {
 	}, delay * 60 * 1000);
 }
 
-Pannel.prototype.processAll = function(options) {
+FlowerBridge.prototype.processAll = function(options) {
 	var self = this;
 
 	if (self._state == 'off') {
@@ -86,7 +94,7 @@ Pannel.prototype.processAll = function(options) {
 	}
 }
 
-Pannel.prototype._makeQueud = function(user, options) {
+FlowerBridge.prototype._makeQueud = function(user, options) {
 	var self = this;
 	var fpPriority = [];
 
@@ -98,18 +106,13 @@ Pannel.prototype._makeQueud = function(user, options) {
 	var q = async.queue(function(task, callbackNext) {
 		var FP = new SyncFP(task.uuid, user, self.api);
 
-		async.series([
-			function(callback) {
-				FP.findAndConnect(callbackNext, callback);
-			},
-			function(callback) {
-				self.syncFlowerPower(FP, callback);
-			}
-			], function(err, results) {
-				if (err != 'Not found') FP.disconnect();
-				helpers.tryCallback(callbackNext());
-			});
-
+		FP.on('process', function(proc) {
+			self.emit('process', proc);
+		});
+		FP.findAndConnect(function(err) {
+			if (err == 'Not found') callbackNext();
+			else self.syncFlowerPower(FP, callbackNext);
+		});
 	}, 1);
 
 	q.drain = function() {
@@ -131,10 +134,9 @@ Pannel.prototype._makeQueud = function(user, options) {
 		helpers.fp[uuid].process = 'None';
 		helpers.fp[uuid].date = new Date().toString().substr(4, 20);
 	}
-	helpers.proc();
 }
 
-Pannel.prototype.syncFlowerPower = function(FP, callback) {
+FlowerBridge.prototype.syncFlowerPower = function(FP, callback) {
 	async.series([
 			function(callback) {
 				FP.syncSamples(callback);
@@ -145,8 +147,8 @@ Pannel.prototype.syncFlowerPower = function(FP, callback) {
 			});
 }
 
-Pannel.prototype.live = function() {
+FlowerBridge.prototype.live = function() {
 
 }
 
-module.exports = Pannel;
+module.exports = FlowerBridge;

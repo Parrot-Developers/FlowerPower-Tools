@@ -8,14 +8,15 @@ function SyncFP(flowerPowerUuid, user, api) {
 	this.process = [];
 }
 
-SyncFP.prototype = new TaskFP;
+SyncFP.prototype = Object.create(TaskFP.prototype);
+SyncFP.prototype.constructor = SyncFP;
 
 SyncFP.prototype.syncSamples = function(callback) {
 	var self = this;
 
 	self.getSamples(function(err, dataBLE) {
-		self.process.unshift('Sending samples');
-		helpers.proc(self.FP.uuid, 'Sending samples', false);
+		if (err) return callback(err);
+		self.proc('Sending samples');
 		var param = {};
 		var session = {};
 		var uploads = {};
@@ -44,46 +45,15 @@ SyncFP.prototype.syncSamples = function(callback) {
 		self.api.sendSamples(param, function(error, resutls) {
 			if (!error) {
 				self.state = 'Updated';
-				helpers.proc(self.FP.uuid, 'Updated', true);
+				self.proc('Updated', true);
 			}
 			else {
 				self.state = 'Failed to updated';
-				helpers.proc(self.FP.uuid, 'Failed to updated', true);
+				self.proc('Failed to update', true);
 			}
 		return callback(error, resutls);
 		});
 	});
-}
-
-SyncFP.prototype.syncStatus = function(callback) {
-	var self = this;
-
-	self.getStatusWatering(function(err, watering) {
-		self.process.unshift('Sending status watering');
-		helpers.proc(self.FP.uuid, 'Sending status watering', false);
-		var param = {};
-		var update_status = {};
-		var now = new Date();
-
-		param["client_datetime_utc"] = now.toISOString();
-		param["user_config_version"] = self.user.user_config_version;
-		update_status['location_identifier'] = self.user.sensors[self.FP.uuid].location_identifier;
-		update_status['status_creation_datetime_utc'] =  self.user.sensors[self.FP.uuid].status_creation_datetime_utc;
-		update_status['watering'] = watering;
-
-		param['update_status'] = [update_status];
-		self.api.sendGardenStatus(param, function(error, results) {
-			if (!error) {
-				self.state = 'Status updated';
-				helpers.proc(self.FP.uuid, 'Status updated', true);
-			}
-			else {
-				self.state = 'Failed to status updated';
-				helpers.proc(self.FP.uuid, 'Failed to status updated', true);
-			}
-		return callback(error, self.state);
-		});
-	});
-}
+};
 
 module.exports = SyncFP;
