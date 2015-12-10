@@ -1,5 +1,4 @@
 var TaskFP = require('./TaskFP');
-var helpers = require('./helpers');
 
 function SyncFP(flowerPowerName, user, api) {
 	TaskFP.call(this, flowerPowerName);
@@ -8,15 +7,15 @@ function SyncFP(flowerPowerName, user, api) {
 	this.process = [];
 }
 
-SyncFP.prototype = new TaskFP;
+SyncFP.prototype = Object.create(TaskFP.prototype);
+SyncFP.prototype.constructor = SyncFP;
 
 SyncFP.prototype.syncSamples = function(callback) {
 	var self = this;
 
 	self.getSamples(function(err, dataBLE) {
 		if (err) return callback(err, null);
-		self.process.unshift('Sending samples');
-		helpers.proc(self.FP.name, 'Sending samples', false);
+		self.proc('Sending samples');
 		var param = {};
 		var session = {};
 		var uploads = {};
@@ -46,12 +45,12 @@ SyncFP.prototype.syncSamples = function(callback) {
 		self.api.sendSamples(param, function(error, resutls) {
 			if (!error) {
 				self.state = 'Updated';
-				helpers.proc(self.FP.name, 'Updated', true);
+				self.proc('Updated', true);
 			}
 			else {
 				self.state = 'Failed to updated';
 				// console.log(error);
-				helpers.proc(self.FP.name, 'Failed to updated', true);
+				self.proc('Failed to updated', true);
 			}
 		return callback(error, resutls);
 		});
@@ -62,8 +61,7 @@ SyncFP.prototype.syncStatus = function(callback) {
 	var self = this;
 
 	self.getStatusWatering(function(err, watering) {
-		self.process.unshift('Sending status watering');
-		helpers.proc(self.FP.name, 'Sending status watering', false);
+		self.proc('Sending status watering');
 		var param = {};
 		var update_status = {};
 		var now = new Date();
@@ -71,18 +69,18 @@ SyncFP.prototype.syncStatus = function(callback) {
 		param["client_datetime_utc"] = now.toISOString();
 		param["user_config_version"] = self.user.user_config_version;
 		update_status['location_identifier'] = self.user.sensors[self.FP.name].location_identifier;
-		update_status['status_creation_datetime_utc'] =  self.user.sensors[self.FP.name].status_creation_datetime_utc;
+		update_status['status_creation_datetime_utc'] = self.user.sensors[self.FP.name].status_creation_datetime_utc;
 		update_status['watering'] = watering;
 
 		param['update_status'] = [update_status];
 		self.api.sendGardenStatus(param, function(error, results) {
 			if (!error) {
 				self.state = 'Status updated';
-				helpers.proc(self.FP.name, 'Status updated', true);
+				self.proc('Status updated', true);
 			}
 			else {
 				self.state = 'Failed to status updated';
-				helpers.proc(self.FP.name, 'Failed to status updated', true);
+				self.proc('Failed to status updated', true);
 			}
 		return callback(error, self.state);
 		});

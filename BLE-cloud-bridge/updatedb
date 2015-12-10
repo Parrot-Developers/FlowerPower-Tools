@@ -70,7 +70,7 @@ function findDb(find, max) {
 
 	db.find(toFind).sort({date: -1}).limit(max).exec(function(err, docs) {
 			for (var i in docs) {
-			console.log("[" + docs[i].date + "]:", clc.xterm(docs[i].color)(docs[i].name + ":"), (messColor[docs[i].proc]) ? messColor[docs[i].proc] : docs[i].proc);
+			console.log("[" + docs[i].date.toString().substr(4, 20) + "]:", clc.xterm(docs[i].color)(docs[i].name + ":"), (messColor[docs[i].proc]) ? messColor[docs[i].proc] : docs[i].proc);
 			}
 			});
 }

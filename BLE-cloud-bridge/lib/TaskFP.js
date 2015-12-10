@@ -1,33 +1,60 @@
+var util = require('util');
 var async = require('async');
-var helpers = require('./helpers');
-var FlowerPower = require('../node-flower-power/index');
 var clc = require('cli-color');
+var EventEmitter = require('events');
+var FlowerPower = require('../node-flower-power/index');
+
+var Datastore = require('nedb');
+var db = new Datastore({filename: 'database/process.db', autoload: true});
 
 function TaskFP(flowerPowerName) {
 	this.name = flowerPowerName;
 	this.FP = null;
-	this.state = 'standby';
+	this.lastDate = new Date();
+	this.lastProcess = 'Standby';
 	this.charac = {
+		status_flags: 'getStatusFlags',
+		start_up_time: "getStartupTime",
+		watering_mode: 'getWateringMode',
+		water_tank_level: "getWaterTankLevel",
 		firmware_version: "readFirmwareRevision",
 		hardware_version: "readHardwareRevision",
 		history_nb_entries: "getHistoryNbEntries",
-		history_last_entry_index: "getHistoryLastEntryIdx",
-		history_current_session_id: "getHistoryCurrentSessionID",
-		history_current_session_start_index: "getHistoryCurrentSessionStartIdx",
-		history_current_session_period: "getHistoryCurrentSessionPeriod",
-		start_up_time: "getStartupTime",
-		water_tank_level: "getWaterTankLevel",
-		watering_algorithm_status: "getWateringAlgorithmStatus",
-		status_flags: 'getStatusFlags',
-		watering_mode: 'getWateringMode',
-		next_watering_date: 'getNextWateringDateTime',
 		full_tank_autonomy: 'getFullTankAutonomy',
 		next_empty_tank_date: 'getNextEmptyTankDate',
-		soil_percent_vwc: 'getCalibratedSoilMoisture'
+		soil_percent_vwc: 'getCalibratedSoilMoisture',
+		next_watering_date: 'getNextWateringDateTime',
+		history_last_entry_index: "getHistoryLastEntryIdx",
+		watering_algorithm_status: "getWateringAlgorithmStatus",
+		history_current_session_id: "getHistoryCurrentSessionID",
+		history_current_session_period: "getHistoryCurrentSessionPeriod",
+		history_current_session_start_index: "getHistoryCurrentSessionStartIdx",
 	};
 
 	return this;
-}
+};
+
+util.inherits(TaskFP, EventEmitter);
+
+TaskFP.prototype.proc = function(processMsg, pushDb) {
+	var self = this;
+
+	self.process.unshift(processMsg);
+	self.lastProcess = processMsg;
+	self.lastDate = new Date();
+	self.emit('newProcess', self);
+	if (pushDb) {
+		db.insert({
+			name: self.name,
+			proc: self.lastProcess,
+			date: self.lastDate,
+		});
+	}
+};
+
+TaskFP.prototype.toString = function() {
+	return ("[" + this.lastDate.toString().substr(4, 20) + "]: " + this.name + ": " + this.lastProcess);
+};
 
 TaskFP.prototype.readDataBLE = function(keys) {
 	var self = this;
@@ -38,7 +65,7 @@ TaskFP.prototype.readDataBLE = function(keys) {
 			return function(callback) {
 				self.FP[fnName](callback);
 			};
-		}
+		};
 
 		for (var i in keys) {
 			array[keys[i]] = makeFn(self.charac[keys[i]]);
@@ -48,103 +75,85 @@ TaskFP.prototype.readDataBLE = function(keys) {
 			else resolve(results);
 		});
 	});
-}
+};
 
-TaskFP.prototype.findAndConnect = function(callbackBind, callback) {
+TaskFP.prototype.findAndConnect = function(callback) {
 	var self = this;
-
-	if (typeof callback == 'undefined') {
-		callback = callbackBind;
-		callbackBind = null;
-	}
 
 	self.search(function(err, device) {
 		if (err) return callback(err);
 		else {
 			async.series([
 				function(callback) {
-					self.init(callbackBind, callback);
+					self.init(callback);
 				},
 				function(callback) {
 					self.connect(callback);
 				}
 				], function(err) {
-					if (err) {
-						self.destroy(device);
-						helpers.tryCallback(callbackBind);
-					}
+					if (err) self.destroy(device);
 					return callback(err, null);
 				});
 		}
 	});
-}
+};
 
 TaskFP.prototype.search = function(callback) {
 	var self = this;
 
-	self.process.unshift('Searching');
-	helpers.proc(self.name, 'Searching');
+	self.proc('Searching');
 
 	var discover = function(device) {
 		if (device.name == self.name) {
 			self.FP = device;
 			FlowerPower.stopDiscoverAll(discover);
-			self.process.unshift('Found');
-			helpers.proc(self.FP.name, 'Found');
+			self.proc('Found');
 			return callback(null, device);
 		}
 		else self.destroy(device);
 	};
 	setTimeout(function() {
-		if (self.process[0] == 'Searching') {
-			self.process.unshift('Not found');
-			helpers.proc(self.name, 'Not found', true);
+		if (self.lastProcess == 'Searching') {
+			self.proc('Not found', true);
 			FlowerPower.stopDiscoverAll(discover);
 			return callback('Not found');
 		}
-	}, 30000);
+	}, 10000);
 
 	FlowerPower.discoverAll(discover);
-}
+};
 
-TaskFP.prototype.init = function(callbackBind, callback) {
+TaskFP.prototype.init = function(callback) {
 	var self = this;
 
 	self.FP._peripheral.on('disconnect', function() {
-		self.process.unshift('Disconnected');
-		helpers.proc(self.FP.name, 'Disconnected', false);
-		helpers.tryCallback(callbackBind);
+		self.proc('Disconnected');
 		self.destroy(self.FP);
 	});
 	self.FP._peripheral.on('connect', function() {
-		self.process.unshift('Connected');
-		helpers.proc(self.FP.name, 'Connected', false);
+		self.proc('Connected');
 	});
 
 	if (self.FP._peripheral.state == 'disconnected') { // and flags...
-		self.process.unshift('Connection');
-		helpers.proc(self.FP.name, 'Connection', false);
+		self.proc('Connection');
 		return callback(null);
 	}
 	else if (self.FP._peripheral.state == 'connecting') {
-		self.process.unshift('Not available');
-		helpers.proc(self.FP.name, "is on connection");
+		self.proc("is on connection");
 		return callback('Connecting');
 	}
 	else {
-		self.process.unshift('Not available ' + self.FP._peripheral.state);
-		helpers.proc(self.FP.name, 'is not available: ' + self.FP._peripheral.state, true);
+		self.proc('is not available: ' + self.FP._peripheral.state, true);
 		return callback('Not available');
 	}
-}
+};
 
 TaskFP.prototype.connect = function(callback) {
 	var self = this;
 
 	setTimeout(function() {
-		if (self.process[0] == 'Connection') {
-			self.process.unshift('Connection failed');
-			helpers.proc(self.FP.name, 'Connection failed', true);
+		if (self.lastProcess == 'Connection') {
+			self.proc('Connection failed', true);
 			self.destroy(self.FP);
 			throw (self.FP.name + ': Connection failed');
 		}
@@ -153,27 +162,27 @@ TaskFP.prototype.connect = function(callback) {
 	self.FP.connectAndSetup(function() {
 		return callback(null);
 	});
-}
+};
 
 TaskFP.prototype.disconnect = function(callback) {
 	var self = this;
 
 	self.FP.disconnect(function() {
+		self.destroy(self.FP);
 		if (typeof callback == 'function') return callback(null);
 	});
-}
+};
 
 TaskFP.prototype.destroy = function(device) {
 	device._peripheral.removeAllListeners();
 	device.removeAllListeners();
 	device = null;
-}
+};
 
 TaskFP.prototype.getSamples = function(callback) {
 	var self = this;
 
-	self.process.unshift('Getting samples');
-	helpers.proc(self.FP.name, 'Getting samples', false);
+	self.proc('Getting samples');
 	self.readDataBLE([
 			'history_nb_entries',
 			'history_last_entry_index',
@@ -190,8 +199,7 @@ TaskFP.prototype.getSamples = function(callback) {
 				var firstEntryIndex = dataBLE.history_last_entry_index - dataBLE.history_nb_entries + 1;
 				var startIndex = (cloudIndex >= firstEntryIndex) ? cloudIndex : firstEntryIndex;
 				if (startIndex > dataBLE.history_last_entry_index) {
-					self.process.unshift('No update required');
-					helpers.proc(self.FP.name, 'No update required', true);
+					self.proc('No update required', true);
 					return callback('No update required');
 				}
 
@@ -202,13 +210,12 @@ TaskFP.prototype.getSamples = function(callback) {
 					return callback(error, dataBLE);
 				});
 			});
-}
+};
 
 TaskFP.prototype.getStatusWatering = function(callback) {
 	var self = this;
 
-	self.process.unshift('Getting status watering');
-	helpers.proc(self.FP.name, 'Getting status watering', false);
+	self.proc('Getting status watering');
 	var watering = {
 		'status_key': 'status_ok',
 		'instruction_key': 'soil_moisture_good',
@@ -287,6 +294,6 @@ TaskFP.prototype.getStatusWatering = function(callback) {
 				});
 		}
 	});
-}
+};
 
 module.exports = TaskFP;

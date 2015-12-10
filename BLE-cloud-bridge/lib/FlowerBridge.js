@@ -1,38 +1,50 @@
-var SyncFP = require('./SyncFP');
-var CloudAPI = require('../node-flower-power-cloud/FlowerPowerCloud');
-var helpers = require('./helpers');
+var util = require('util');
 var async = require('async');
 var clc = require('cli-color');
 var Chance = require('chance');
-var chance = new Chance();
+var SyncFP = require('./SyncFP');
+var helpers = require('./helpers')
+var EventEmitter = require('events');
+var CloudAPI = require('../node-flower-power-cloud/FlowerPowerCloud');
 
+var chance = new Chance();
 
 // Load page getUser
 // When automatic process getUser to create Queud and make param for API
-function Pannel(url) {
+function FlowerBridge(url) {
+	EventEmitter.call(this);
 	this._state = 'off';
 	this.user = null;
 	this.api = new CloudAPI(url);
-}
+};
 
-Pannel.prototype.loginToApi = function(credentials, callback) {
-	this.api.login(credentials, callback);
-}
+util.inherits(FlowerBridge, EventEmitter);
 
-Pannel.prototype.getState = function() {
-	return (this._state);
-}
+FlowerBridge.prototype.loginToApi = function(credentials, callback) {
+	var self = this;
 
-Pannel.prototype._init = function() {
-	this.getUser(function(err, user) {
-		if (err) helpers.logTime('Error in getInformationsCloud');
-		else {
-			console.log('Init');
-		}
+	self.api.login(credentials, function(err, token) {
+		if (!err) self.emit('login', token);
+		if (typeof callback != 'undefined') callvack(err, token);
 	});
-}
+};
 
-Pannel.prototype.getUser = function(callback) {
+FlowerBridge.prototype.logTime = function() {
+	var dest = '[' + new Date().toString().substr(4, 20) + ']:';
+	var argv = arguments;
+	var i = 0;
+
+	for (i; argv[i]; i++) {
+		dest += ' ' + argv[i];
+	}
+	console.log(dest);
+};
+
+FlowerBridge.prototype.getState = function() {
+	return (this._state);
+};
+
+FlowerBridge.prototype.getUser = function(callback) {
 	var self = this;
 
 	async.parallel({
@@ -47,14 +59,16 @@ Pannel.prototype.getUser = function(callback) {
 			});
 		},
 	}, function(error, results) {
-		var user = helpers.concatJson(results.userConfig, results.garden);
-		self.user = user;
+		if (error) self._state = 'off';
+		else {
+			var user = helpers.concatJson(results.userConfig, results.garden);
+			self.user = user;
+		}
 		callback(error, user);
 	});
-}
+};
 
-
-Pannel.prototype.automatic = function(options) {
+FlowerBridge.prototype.automatic = function(options) {
 	var self = this;
 	var delay = 15;
 
@@ -66,22 +80,22 @@ Pannel.prototype.automatic = function(options) {
 	setInterval(function() {
 		if (self._state == 'off') self.processAll(options);
 	}, delay * 60 * 1000);
-}
+};
 
-Pannel.prototype.processAll = function(options) {
+FlowerBridge.prototype.processAll = function(options) {
 	var self = this;
 
 	if (self._state == 'off') {
 		self._state = 'automatic';
 
 		self.getUser(function(err, user) {
-			if (err) helpers.logTime('Error in getInformationsCloud');
+			if (err) self.logTime('Error in getInformationsCloud');
 			else self._makeQueud(user, options);
 		});
 	}
-}
+};
 
-Pannel.prototype._makeQueud = function(user, options) {
+FlowerBridge.prototype._makeQueud = function(user, options) {
 	var self = this;
 	var typeFilter = [];
 	var fpPriority = [];
@@ -91,26 +105,25 @@ Pannel.prototype._makeQueud = function(user, options) {
 		if (typeof options['priority'] != 'undefined') fpPriority = options['priority'];
 	}
 
-	helpers.logTime(clc.yellow('New scan for', clc.bold(Object.keys(user.sensors).length), "sensors"));
+	self.logTime(clc.yellow('New scan for', clc.bold(Object.keys(user.sensors).length), "sensors"));
 	var q = async.queue(function(task, callbackNext) {
 		var FP = new SyncFP(task.name, user, self.api);
 
-		async.series([
-			function(callback) {
-				FP.findAndConnect(callbackNext, callback);
-			},
-			function(callback) {
-				self.syncFlowerPower(FP, callback);
-			}
-			], function(err, results) {
-				if (err != 'Not found') FP.disconnect();
-				else callbackNext();
+		FP.on('newProcess', function(flowerPower) {
+			self.emit('newProcess', flowerPower);
+			if (flowerPower.lastProcess == 'Disconnected') return callbackNext();
+			if (options.fnLog != 'undefined') options.fnLog(flowerPower);
+		});
+		FP.findAndConnect(function(err) {
+			if (err) return callbackNext();
+			self.syncFlowerPower(FP, function(err, res) {
+				FP.disconnect();
 			});
-
+		});
 	}, 1);
 
 	q.drain = function() {
-		helpers.logTime('All FlowerPowers have been processed\n');
+		self.logTime('All FlowerPowers have been processed\n');
 		self._state = 'off';
 	}
 
@@ -127,18 +140,10 @@ Pannel.prototype._makeQueud = function(user, options) {
 				}
 			});
 		}
-
-		if (typeof helpers.fp[identifier] == 'undefined') {
-			helpers.fp[identifier] = {};
-			helpers.fp[identifier].color = chance.natural({min: 100, max: 200});
-		}
-		helpers.fp[identifier].process = 'None';
-		helpers.fp[identifier].date = new Date().toString().substr(4, 20);
 	}
-	helpers.proc();
-}
+};
 
-Pannel.prototype.syncFlowerPower = function(FP, callback) {
+FlowerBridge.prototype.syncFlowerPower = function(FP, callback) {
 	async.series([
 			function(callback) {
 				FP.syncStatus(callback);
@@ -151,8 +156,8 @@ Pannel.prototype.syncFlowerPower = function(FP, callback) {
 			});
 }
 
-Pannel.prototype.live = function() {
+FlowerBridge.prototype.live = function() {
 
-}
+};
 
-module.exports = Pannel;
+module.exports = FlowerBridge;
