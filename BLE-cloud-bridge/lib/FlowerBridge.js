@@ -26,6 +26,18 @@ FlowerBridge.prototype.loginToApi = function(credentials, callback) {
 	});
 }
 
+FlowerBridge.prototype.logTime = function() {
+	var dest = '[' + new Date().toString().substr(4, 20) + ']:';
+	var argv = arguments;
+	var i = 0;
+
+	for (i; argv[i]; i++) {
+		dest += ' ' + argv[i];
+	}
+	console.log(dest);
+
+};
+
 FlowerBridge.prototype.getState = function() {
 	return (this._state);
 }
@@ -88,7 +100,7 @@ FlowerBridge.prototype.processAll = function(options) {
 		self._state = 'automatic';
 
 		self.getUser(function(err, user) {
-			if (err) helpers.logTime('Error in getInformationsCloud');
+			if (err) self.logTime('Error in getInformationsCloud');
 			else self._makeQueud(user, options);
 		});
 	}
@@ -102,37 +114,33 @@ FlowerBridge.prototype._makeQueud = function(user, options) {
 		if (typeof options['priority'] != 'undefined') fpPriority = options['priority'];
 	}
 
-	helpers.logTime(clc.yellow('New scan for', clc.bold(Object.keys(user.sensors).length), "sensors"));
+	self.logTime(clc.yellow('New scan for', clc.bold(Object.keys(user.sensors).length), "sensors"));
 	var q = async.queue(function(task, callbackNext) {
 		var FP = new SyncFP(task.uuid, user, self.api);
 
-		FP.on('process', function(proc) {
-			self.emit('process', proc);
+		FP.on('newProcess', function(flowerPower) {
+			self.emit('newProcess', flowerPower);
+			if (options.fnLog != 'undefined') options.fnLog(flowerPower);
+			if (flowerPower.lastProcess == 'Disconnected') return callbackNext();
 		});
 		FP.findAndConnect(function(err) {
-			if (err == 'Not found') callbackNext();
-			else self.syncFlowerPower(FP, callbackNext);
+			if (err) return callbackNext();
+			else self.syncFlowerPower(FP, function(err, res) {
+				FP.disconnect();
+			});
 		});
 	}, 1);
 
 	q.drain = function() {
-		helpers.logTime('All FlowerPowers have been processed\n');
+		self.logTime('All FlowerPowers have been processed\n');
 		self._state = 'off';
 	}
 
 	for (var i = 0; i < fpPriority.length; i++) {
 		q.push({uuid: fpPriority[i]});
 	}
-
 	for (var uuid in user.sensors) {
-		var uuid = helpers.uuidCloudToPeripheral(uuid);
-		q.push({uuid: uuid});
-		if (typeof helpers.fp[uuid] == 'undefined') {
-			helpers.fp[uuid] = {};
-			helpers.fp[uuid].color = chance.natural({min: 100, max: 200});
-		}
-		helpers.fp[uuid].process = 'None';
-		helpers.fp[uuid].date = new Date().toString().substr(4, 20);
+		q.push({uuid: helpers.uuidCloudToPeripheral(uuid)});
 	}
 }
 

@@ -1,25 +1,32 @@
+var util = require('util');
 var async = require('async');
 var clc = require('cli-color');
-var util = require('util');
-var EventEmitter = require('events');
 var helpers = require('./helpers');
+var EventEmitter = require('events');
 var FlowerPower = require('../node-flower-power/index');
+
+var Datastore = require('nedb');
+var db = new Datastore({filename: 'database/process.db', autoload: true});
+
+var DELAY_SEARCHING_ATTEMPT = 30000;
+var DELAY_CONNECTION_ATTEMPT = 30000;
 
 function TaskFP(flowerPowerUuid) {
 	EventEmitter.call(this);
-	this.uuid = flowerPowerUuid;
 	this.FP = null;
-	this.state = 'standby';
+	this.lastDate = new Date();
+	this.uuid = flowerPowerUuid;
+	this.lastProcess = 'Standby';
 	this.charac = {
+		start_up_time: "getStartupTime",
 		firmware_version: "readFirmwareRevision",
 		hardware_version: "readHardwareRevision",
 		history_nb_entries: "getHistoryNbEntries",
+		soil_percent_vwc: 'getCalibratedSoilMoisture',
 		history_last_entry_index: "getHistoryLastEntryIdx",
 		history_current_session_id: "getHistoryCurrentSessionID",
-		history_current_session_start_index: "getHistoryCurrentSessionStartIdx",
 		history_current_session_period: "getHistoryCurrentSessionPeriod",
-		start_up_time: "getStartupTime",
-		soil_percent_vwc: 'getCalibratedSoilMoisture'
+		history_current_session_start_index: "getHistoryCurrentSessionStartIdx"
 	};
 
 	return this;
@@ -31,11 +38,20 @@ TaskFP.prototype.proc = function(processMsg, pushDb) {
 	var self = this;
 
 	self.process.unshift(processMsg);
-	self.emit('process', {
-		uuid: self.uuid,
-		state: processMsg,
-		date: new Date()
-	});
+	self.lastProcess = processMsg;
+	self.lastDate = new Date();
+	self.emit('newProcess', self);
+	if (pushDb) {
+		db.insert({
+			uuid: self.uuid,
+			proc: self.lastProcess,
+			date: self.lastDate
+		});
+	}
+};
+
+TaskFP.prototype.toString = function() {
+		return ("[" + this.lastDate.toString().substr(4, 20) + "]: " + this.uuid + ": " + this.lastProcess);
 };
 
 TaskFP.prototype.readDataBLE = function(keys) {
@@ -99,7 +115,7 @@ TaskFP.prototype.search = function(callback) {
 			self.proc('Not found', true);
 			return callback('Not found');
 		}
-	}, 10000);
+	}, DELAY_SEARCHING_ATTEMPT);
 
 	FlowerPower.discoverAll(discover);
 };
@@ -112,7 +128,6 @@ TaskFP.prototype.init = function(callback) {
 		self.destroy(self.FP);
 	});
 	self.FP._peripheral.on('connect', function() {
-		self.process.unshift('Connected');
 		self.proc('Connected');
 	});
 
@@ -139,7 +154,7 @@ TaskFP.prototype.connect = function(callback) {
 			self.destroy(self.FP);
 			throw (self.FP.uuid + ': Connection failed');
 		}
-	}, 30000);
+	}, DELAY_CONNECTION_ATTEMPT);
 
 	self.FP.connectAndSetup(function() {
 		return callback(null);
@@ -165,14 +180,14 @@ TaskFP.prototype.getSamples = function(callback) {
 
 	self.proc('Getting samples');
 	self.readDataBLE([
+			'start_up_time',
+			'firmware_version',
+			'hardware_version',
 			'history_nb_entries',
 			'history_last_entry_index',
 			'history_current_session_id',
-			'history_current_session_start_index',
 			'history_current_session_period',
-			'start_up_time',
-			'firmware_version',
-			'hardware_version'
+			'history_current_session_start_index'
 			]).then(function(dataBLE) {
 				var hw_v = dataBLE.hardware_version;
 				var fw_v = dataBLE.firmware_version;
