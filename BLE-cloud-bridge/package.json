@@ -4,7 +4,8 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"test": "echo 'test' && exit 0"
+		"test": "echo 'test' && exit 0",
+		"start": "sudo ./run display"
 	},
 	"author": "Bruno Sautron",
 	"license": "ISC",

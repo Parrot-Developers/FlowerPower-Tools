@@ -13,7 +13,7 @@ function FlowerBridge() {
 	this._state = 'off';
 	this.user = null;
 	this.api = new FlowerPowerCloud();
-}
+};
 
 util.inherits(FlowerBridge, EventEmitter);
 
@@ -24,23 +24,11 @@ FlowerBridge.prototype.loginToApi = function(credentials, callback) {
 		if (!err) self.emit('login', token);
 		if (typeof callback != 'undefined') callback(err, token);
 	});
-}
-
-FlowerBridge.prototype.logTime = function() {
-	var dest = '[' + new Date().toString().substr(4, 20) + ']:';
-	var argv = arguments;
-	var i = 0;
-
-	for (i; argv[i]; i++) {
-		dest += ' ' + argv[i];
-	}
-	console.log(dest);
-
 };
 
 FlowerBridge.prototype.getState = function() {
 	return (this._state);
-}
+};
 
 FlowerBridge.prototype.getUser = function(callback) {
 	var self = this;
@@ -66,18 +54,27 @@ FlowerBridge.prototype.getUser = function(callback) {
 		self.user = user;
 		callback(error, user);
 	});
-}
+};
 
-FlowerBridge.prototype.proc = function(process, pushDb) {
-	var self = this;
-
-	self.process.unshift(process);
-	self.emit('process', {
-		uuid: self.uuid,
-		state: process,
+FlowerBridge.prototype.info = function(message) {
+	this.emit('info', {
+		message: message,
 		date: new Date()
 	});
-}
+};
+
+FlowerBridge.prototype.error = function(message) {
+	this.emit('error', {
+		message: message,
+		date: new Date()
+	});
+};
+
+FlowerBridge.prototype.proc = function(flowerPower) {
+	var self = this;
+
+	self.emit('newProcess', flowerPower);
+};
 
 FlowerBridge.prototype.automatic = function(options) {
 	var self = this;
@@ -86,12 +83,12 @@ FlowerBridge.prototype.automatic = function(options) {
 	if (typeof options != 'undefined' && typeof options['delay'] != 'undefinded') {
 		delay = options['delay'];
 	}
-	console.log('New process every ' + delay + ' minutes');
+	self.info('New process every ' + delay + ' minutes');
 	self.processAll(options);
 	setInterval(function() {
 		if (self._state == 'off') self.processAll(options);
 	}, delay * 60 * 1000);
-}
+};
 
 FlowerBridge.prototype.processAll = function(options) {
 	var self = this;
@@ -100,11 +97,11 @@ FlowerBridge.prototype.processAll = function(options) {
 		self._state = 'automatic';
 
 		self.getUser(function(err, user) {
-			if (err) self.logTime('Error in getInformationsCloud');
+			if (err) self.error('Error in getInformationsCloud');
 			else self._makeQueud(user, options);
 		});
 	}
-}
+};
 
 FlowerBridge.prototype._makeQueud = function(user, options) {
 	var self = this;
@@ -114,13 +111,12 @@ FlowerBridge.prototype._makeQueud = function(user, options) {
 		if (typeof options['priority'] != 'undefined') fpPriority = options['priority'];
 	}
 
-	self.logTime(clc.yellow('New scan for', clc.bold(Object.keys(user.sensors).length), "sensors"));
+	self.info(clc.yellow('New scan for ' + clc.bold(Object.keys(user.sensors).length) + " sensors"));
 	var q = async.queue(function(task, callbackNext) {
 		var FP = new SyncFP(task.uuid, user, self.api);
 
 		FP.on('newProcess', function(flowerPower) {
-			self.emit('newProcess', flowerPower);
-			if (options.fnLog != 'undefined') options.fnLog(flowerPower);
+			self.proc(flowerPower);
 			if (flowerPower.lastProcess == 'Disconnected') return callbackNext();
 		});
 		FP.findAndConnect(function(err) {
@@ -132,7 +128,7 @@ FlowerBridge.prototype._makeQueud = function(user, options) {
 	}, 1);
 
 	q.drain = function() {
-		self.logTime('All FlowerPowers have been processed\n');
+		self.info('All FlowerPowers have been processed');
 		self._state = 'off';
 	}
 
@@ -142,7 +138,7 @@ FlowerBridge.prototype._makeQueud = function(user, options) {
 	for (var uuid in user.sensors) {
 		q.push({uuid: helpers.uuidCloudToPeripheral(uuid)});
 	}
-}
+};
 
 FlowerBridge.prototype.syncFlowerPower = function(FP, callback) {
 	async.series([
@@ -153,10 +149,10 @@ FlowerBridge.prototype.syncFlowerPower = function(FP, callback) {
 			], function(err, results) {
 				callback(err, results);
 			});
-}
+};
 
 FlowerBridge.prototype.live = function() {
 
-}
+};
 
 module.exports = FlowerBridge;
