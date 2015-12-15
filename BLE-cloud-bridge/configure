@@ -3,6 +3,8 @@
 
 branch="v2";
 
+sudo apt-get install -y mailutils mpack
+sudo apt-get install -y ssmtp
 (git clone -b $branch https://github.com/Parrot-Developers/node-flower-power.git && cd node-flower-power && npm install)
 (git clone -b $branch https://github.com/Parrot-Developers/node-flower-power-cloud.git && cd node-flower-power-cloud && npm install)
 npm install
