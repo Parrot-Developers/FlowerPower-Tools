@@ -3,9 +3,6 @@
 pid=0
 
 usage () {
-	echo
-	echo "-- Warning: Make sure you have a sudo permission --"
-	echo
 	echo "Flower Bridge: See Flowers fall on the bridge"
 	echo "Every 15 minutes (default), all of your Flower Power will be update"
 	echo 
@@ -21,9 +18,9 @@ usage () {
 	echo "		Specify the loop time in minute"
 	echo
 	echo "EXAMPLES:"
-	echo "	sudo ./run display		: (loop every 15 minutes)"
-	echo "	sudo ./run display 60		: (loop every 1 hour)"
-	echo "	sudo ./run background 1440	: (loop every day without render in console)"
+	echo "	./run display		: (loop every 15 minutes)"
+	echo "	./run display 60		: (loop every 1 hour)"
+	echo "	./run background 1440	: (loop every day without render in console)"
 	echo
 	echo "AUTHOR:"
 	echo "	Written by Bruno Sautron."
@@ -35,40 +32,67 @@ welcome () {
 	echo
 }
 
+pidexist () {
+	kill -0 $pid 2> /dev/null
+}
+
+isrunning () {
+	pid=$(head -n 1 ".flowerIsRunning" 2> /dev/null)
+	if [ -z "$pid" ]
+	then
+		return 1
+	else
+		pidexist
+		if [ "$?" == 0 ]
+		then
+			return 0
+		fi
+		return 1
+	fi
+}
+
 displayit () {
 	welcome
-	node ./index.js $1 2> trace.log
-	while [ "$?" == 111 ]; do
-		echo "Crash into the program"
-		echo "Restart the program"
-		welcome
-		node ./index.js $1 2> trace.log
-	done
+	isrunning
+	if [ "$?" == 1 ]
+	then
+		sudo node ./index.js $1
+	else
+		echo "[$pid]: A program is already running"
+	fi
 }
 
 backgroundit () {
 	welcome
-	pid=$(head -n 1 ".flowerIsRunning" 2> /dev/null)
-	if [ -z "$pid" ]
+	isrunning
+	if [ "$?" == 1 ]
 	then
-		node ./index.js $1 2> trace.log 1>/dev/null &
+		sudo node ./index.js $1 2> trace.log 1>/dev/null &
 		echo $! > ".flowerIsRunning"
 		echo "To see your log:"
 		echo "$> sudo ./updatedb"
+		crontab -u $USER -l > mycron
+		echo "* * * * * cd $PWD && bash deamon.sh" >> mycron 
+		crontab mycron
+		rm mycron
 	else
 		echo "[$pid]: A program is already running"
 	fi
 }
 
 stopit () {
-	pid=$(head -n 1 ".flowerIsRunning" 2> /dev/null)
-	if [ -z "$pid" ]
+	isrunning
+	if [ "$?" == 1 ]
 	then
 		echo "No program is running"
 	else
 		killProgram
 		echo "Bye :)"
 	fi
+	crontab -u $USER -l > mycron.tmp
+	sed '$ d' mycron.tmp > mycron
+	crontab mycron
+	rm mycron*
 }
 
 restartit () {
@@ -99,6 +123,12 @@ else
 	elif [ $1 == "restart" ]
 	then
 		restartit
+	elif [ $1 == "running" ]
+	then
+		isrunning
+	elif [ $1 == "test" ]
+	then
+		echo $USER
 	else
 		usage
 	fi
