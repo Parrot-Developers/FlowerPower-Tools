@@ -88,7 +88,7 @@ stopit () {
 	then
 		echo "No program is running"
 	else
-		killProgram
+		killit
 		crontab -u $USER -l > mycron.tmp
 		sed '$ d' mycron.tmp > mycron
 		crontab mycron
@@ -102,7 +102,7 @@ restartit () {
 	backgroundit $1
 }
 
-killProgram () {
+killit () {
 	sudo kill $pid
 	rm -f ".flowerIsRunning"
 	echo "kill" $pid
@@ -128,7 +128,7 @@ else
 	elif [ $1 == "running" ]
 	then
 		isrunning
-	elif [ $1 == "test" ]
+	elif [ $1 == "crontab" ]
 	then
 		echo $USER:
 		crontab -l
