@@ -33,7 +33,7 @@ welcome () {
 }
 
 pidexist () {
-	kill -0 $pid 2> /dev/null
+	sudo kill -0 $1 2> /dev/null
 }
 
 isrunning () {
@@ -42,7 +42,7 @@ isrunning () {
 	then
 		return 1
 	else
-		pidexist
+		pidexist $pid
 		if [ "$?" == 0 ]
 		then
 			return 0
@@ -101,7 +101,7 @@ restartit () {
 }
 
 killProgram () {
-	kill $pid
+	sudo kill $pid
 	rm ".flowerIsRunning"
 	echo "kill" $pid
 	pid=0
@@ -128,7 +128,8 @@ else
 		isrunning
 	elif [ $1 == "test" ]
 	then
-		echo $USER
+		pidexist
+		echo $?
 	else
 		usage
 	fi
