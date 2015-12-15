@@ -68,7 +68,7 @@ backgroundit () {
 	if [ "$?" == 1 ]
 	then
 		sudo node ./index.js $1 2> trace.log 1>/dev/null &
-		echo $! > ".flowerIsRunning"
+		sudo echo $! > ".flowerIsRunning"
 		echo "To see your log:"
 		echo "$> sudo ./updatedb"
 		crontab -u $USER -l > mycron
@@ -87,12 +87,12 @@ stopit () {
 		echo "No program is running"
 	else
 		killProgram
+		crontab -u $USER -l > mycron.tmp
+		sed '$ d' mycron.tmp > mycron
+		crontab mycron
+		rm mycron*
 		echo "Bye :)"
 	fi
-	crontab -u $USER -l > mycron.tmp
-	sed '$ d' mycron.tmp > mycron
-	crontab mycron
-	rm mycron*
 }
 
 restartit () {
