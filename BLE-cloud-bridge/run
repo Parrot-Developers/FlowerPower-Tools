@@ -35,21 +35,40 @@ welcome () {
 	echo
 }
 
-loopingDisplay () {
-	welcome
-	node ./index.js $1 2> trace.log
-	while [ "$?" == 111 ]; do
-		echo "Crash into the program"
-		echo "Restart the program"
-		welcome
-		node ./index.js $1 2> trace.log
-	done
+pidexist () {
+	kill -0 $pid 2> /dev/null
 }
 
-background () {
-	welcome
+isrunning () {
 	pid=$(head -n 1 ".flowerIsRunning" 2> /dev/null)
 	if [ -z "$pid" ]
+	then
+		return 1
+	else
+		pidexist
+		if [ "$?" == 0 ]
+		then
+			return 0
+		fi
+		return 1
+	fi
+}
+
+displayit () {
+	welcome
+	isrunning
+	if [ "$?" == 1 ]
+	then
+		node ./index.js $1
+	else
+		echo "[$pid]: A program is already running"
+	fi
+}
+
+backgroundit () {
+	welcome
+	isrunning
+	if [ "$?" == 1 ]
 	then
 		node ./index.js $1 2> trace.log 1>/dev/null &
 		echo $! > ".flowerIsRunning"
@@ -58,6 +77,22 @@ background () {
 	else
 		echo "[$pid]: A program is already running"
 	fi
+}
+
+stopit () {
+	isrunning
+	if [ "$?" == 1 ]
+	then
+		echo "No program is running"
+	else
+		killProgram
+		echo "Bye :)"
+	fi
+}
+
+restartit () {
+	stopit
+	backgroundit $1
 }
 
 killProgram () {
@@ -73,20 +108,19 @@ then
 else
 	if [ "$1" == "display" ]
 	then
-		loopingDisplay $2 
+		displayit $2 
 	elif [ "$1" == "background" ]
 	then
-		background $2
+		backgroundit $2
 	elif [ "$1" == "stop" ]
 	then
-		pid=$(head -n 1 ".flowerIsRunning" 2> /dev/null)
-		if [ -z "$pid" ]
-		then
-			echo "No program is running"
-		else
-			killProgram
-			echo "Bye :)"
-		fi
+		stopit $2
+	elif [ $1 == "restart" ]
+	then
+		restartit
+	elif [ $1 == "running" ]
+	then
+		isrunning
 	else
 		usage
 	fi
