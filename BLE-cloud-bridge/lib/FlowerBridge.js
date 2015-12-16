@@ -45,12 +45,7 @@ FlowerBridge.prototype.getUser = function(callback) {
 			});
 		},
 	}, function(error, results) {
-		var user = helpers.concatJson(results.userConfig, results.garden);
-		var sensors = {};
-		for (var i = 0; i < user.sensors.length; i++) {
-			sensors[user.sensors[i].sensor_serial] = user.sensors[i];
-		}
-		user.sensors = sensors;
+		var user = self.api.concatJson(results.userConfig, results.garden);
 		self.user = user;
 		callback(error, user);
 	});
@@ -71,9 +66,16 @@ FlowerBridge.prototype.error = function(message) {
 };
 
 FlowerBridge.prototype.proc = function(flowerPower) {
-	var self = this;
+	this.emit('newProcess', flowerPower);
+};
 
-	self.emit('newProcess', flowerPower);
+FlowerBridge.prototype.stop = function () {
+	this.emit('stop');
+};
+
+FlowerBridge.prototype.state = function(state) {
+	this._state = state;
+	this.emit('newState', state);
 };
 
 FlowerBridge.prototype.automatic = function(options) {
@@ -94,7 +96,7 @@ FlowerBridge.prototype.processAll = function(options) {
 	var self = this;
 
 	if (self._state == 'off') {
-		self._state = 'automatic';
+		self.state('automatic')
 
 		self.getUser(function(err, user) {
 			if (err) self.error('Error in getInformationsCloud');
@@ -114,13 +116,18 @@ FlowerBridge.prototype._makeQueud = function(user, options) {
 	self.info(clc.yellow('New scan for ' + clc.bold(Object.keys(user.sensors).length) + " sensors"));
 	var q = async.queue(function(task, callbackNext) {
 		var FP = new SyncFP(task.uuid, user, self.api);
-
 		FP.on('newProcess', function(flowerPower) {
 			self.proc(flowerPower);
-			if (flowerPower.lastProcess == 'Disconnected') return callbackNext();
+			if (flowerPower.lastProcess == 'Disconnected') {
+				self.emit('endProcessFP');
+				return callbackNext();
+			}
 		});
 		FP.findAndConnect(function(err) {
-			if (err) return callbackNext();
+			if (err) {
+				self.emit('endProcessFP');
+				return callbackNext();
+			}
 			else self.syncFlowerPower(FP, function(err, res) {
 				FP.disconnect();
 			});
@@ -129,7 +136,7 @@ FlowerBridge.prototype._makeQueud = function(user, options) {
 
 	q.drain = function() {
 		self.info('All FlowerPowers have been processed');
-		self._state = 'off';
+		self.state('Process all end');
 	}
 
 	for (var i = 0; i < fpPriority.length; i++) {
@@ -138,7 +145,17 @@ FlowerBridge.prototype._makeQueud = function(user, options) {
 	for (var uuid in user.sensors) {
 		q.push({uuid: helpers.uuidCloudToPeripheral(uuid)});
 	}
+
+	self.on('stop', function() {
+		q.kill();
+		self.state('waiting');
+		self.once('endProcessFP', function() {
+			self.state('off');
+		});
+		self.removeAllListeners('stop');
+	});
 };
+
 
 FlowerBridge.prototype.syncFlowerPower = function(FP, callback) {
 	async.series([
