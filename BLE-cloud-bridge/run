@@ -3,9 +3,6 @@
 pid=0
 
 usage () {
-	echo
-	echo "-- Warning: Make sure you have a sudo permission --"
-	echo
 	echo "Flower Bridge: See Flowers fall on the bridge"
 	echo "Every 15 minutes (default), all of your Flower Power will be update"
 	echo 
@@ -21,9 +18,9 @@ usage () {
 	echo "		Specify the loop time in minute"
 	echo
 	echo "EXAMPLES:"
-	echo "	sudo ./run display		: (loop every 15 minutes)"
-	echo "	sudo ./run display 60		: (loop every 1 hour)"
-	echo "	sudo ./run background 1440	: (loop every day without render in console)"
+	echo "	./run display		: (loop every 15 minutes)"
+	echo "	./run display 60		: (loop every 1 hour)"
+	echo "	./run background 1440	: (loop every day without render in console)"
 	echo
 	echo "AUTHOR:"
 	echo "	Written by Bruno Sautron."
@@ -36,7 +33,7 @@ welcome () {
 }
 
 pidexist () {
-	kill -0 $pid 2> /dev/null
+	sudo kill -0 $1 2> /dev/null
 }
 
 isrunning () {
@@ -45,7 +42,7 @@ isrunning () {
 	then
 		return 1
 	else
-		pidexist
+		pidexist $pid
 		if [ "$?" == 0 ]
 		then
 			return 0
@@ -59,9 +56,11 @@ displayit () {
 	isrunning
 	if [ "$?" == 1 ]
 	then
-		node ./index.js $1
+		sudo node ./index.js $1
 	else
-		echo "[$pid]: A program is already running"
+		echo "[$pid]: A program was already running"
+		stopit
+		sudo node ./index.js $1
 	fi
 }
 
@@ -70,8 +69,8 @@ backgroundit () {
 	isrunning
 	if [ "$?" == 1 ]
 	then
-		node ./index.js $1 2> trace.log 1>/dev/null &
-		echo $! > ".flowerIsRunning"
+		sudo node ./index.js $1 2> trace.log 1>/dev/null &
+		sudo echo $! > ".flowerIsRunning"
 		echo "To see your log:"
 		echo "$> sudo ./updatedb"
 	else
@@ -85,7 +84,7 @@ stopit () {
 	then
 		echo "No program is running"
 	else
-		killProgram
+		killit
 		echo "Bye :)"
 	fi
 }
@@ -95,9 +94,9 @@ restartit () {
 	backgroundit $1
 }
 
-killProgram () {
-	kill $pid
-	rm ".flowerIsRunning"
+killit () {
+	sudo kill $pid
+	rm -f ".flowerIsRunning"
 	echo "kill" $pid
 	pid=0
 }

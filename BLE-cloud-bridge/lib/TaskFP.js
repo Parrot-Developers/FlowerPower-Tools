@@ -8,7 +8,7 @@ var FlowerPower = require('../node-flower-power/index');
 var Datastore = require('nedb');
 var db = new Datastore({filename: 'database/process.db', autoload: true});
 
-var DELAY_SEARCHING_ATTEMPT = 10000;
+var DELAY_SEARCHING_ATTEMPT = 30000;
 var DELAY_CONNECTION_ATTEMPT = 60000;
 
 function TaskFP(flowerPowerUuid) {
