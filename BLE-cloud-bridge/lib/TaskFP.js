@@ -3,7 +3,7 @@ var async = require('async');
 var clc = require('cli-color');
 var helpers = require('./helpers');
 var EventEmitter = require('events');
-var FlowerPower = require('../node-flower-power/index');
+var FlowerPower = require('flower-power-ble');
 
 var Datastore = require('nedb');
 var db = new Datastore({filename: 'database/process.db', autoload: true});

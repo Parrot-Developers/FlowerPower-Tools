@@ -1,5 +1,5 @@
 var SyncFP = require('./SyncFP');
-var FlowerPowerCloud = require('../node-flower-power-cloud/FlowerPowerCloud');
+var FlowerPowerApi = require('flower-power-api');
 var helpers = require('./helpers');
 var util = require('util');
 var async = require('async');
@@ -12,7 +12,7 @@ function FlowerBridge() {
 	EventEmitter.call(this);
 	this._state = 'off';
 	this.user = null;
-	this.api = new FlowerPowerCloud();
+	this.api = new FlowerPowerApi();
 };
 
 util.inherits(FlowerBridge, EventEmitter);
@@ -88,14 +88,14 @@ FlowerBridge.prototype.automatic = function(options) {
 	self.info('New process every ' + delay + ' minutes');
 	self.processAll(options);
 	setInterval(function() {
-		if (self._state == 'off') self.processAll(options);
+		self.processAll(options);
 	}, delay * 60 * 1000);
 };
 
 FlowerBridge.prototype.processAll = function(options) {
 	var self = this;
 
-	if (self._state == 'off') {
+	if (self._state == 'off' || self._state == 'allProcessEnd') {
 		self.state('automatic')
 
 		self.getUser(function(err, user) {
@@ -113,7 +113,6 @@ FlowerBridge.prototype._makeQueud = function(user, options) {
 		if (typeof options['priority'] != 'undefined') fpPriority = options['priority'];
 	}
 
-	self.info(clc.yellow('New scan for ' + clc.bold(Object.keys(user.sensors).length) + " sensors"));
 	var q = async.queue(function(task, callbackNext) {
 		var FP = new SyncFP(task.uuid, user, self.api);
 		FP.on('newProcess', function(flowerPower) {
@@ -136,24 +135,32 @@ FlowerBridge.prototype._makeQueud = function(user, options) {
 
 	q.drain = function() {
 		self.info('All FlowerPowers have been processed');
-		self.state('Process all end');
+		self.state('allProcessEnd');
 	}
 
 	for (var i = 0; i < fpPriority.length; i++) {
 		q.push({uuid: fpPriority[i]});
 	}
 	for (var uuid in user.sensors) {
-		q.push({uuid: helpers.uuidCloudToPeripheral(uuid)});
+		if (uuid != 'null' && uuid != 'undefined') {
+			q.push({uuid: helpers.uuidCloudToPeripheral(uuid)});
+		}
 	}
 
 	self.on('stop', function() {
 		q.kill();
-		self.state('waiting');
-		self.once('endProcessFP', function() {
+		if (self._state == 'allProcessEnd') {
 			self.state('off');
-		});
+		}
+		else {
+			self.state('waiting');
+			self.once('endProcessFP', function() {
+				self.state('off');
+			});
+		}
 		self.removeAllListeners('stop');
 	});
+	self.info(clc.yellow('New scan for ' + clc.bold(q.length()) + " sensors"));
 };
 
 
