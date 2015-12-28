@@ -25,7 +25,7 @@ FlowerBridge.prototype.loginToApi = function(credentials, callback) {
 
 	self.api.login(credentials, function(err, token) {
 		if (!err) self.emit('login', token);
-		if (typeof callback != 'undefined') callvack(err, token);
+		if (typeof callback != 'undefined') callback(err, token);
 	});
 };
 
