@@ -7,6 +7,9 @@ var FlowerPower = require('../node-flower-power/index');
 var Datastore = require('nedb');
 var db = new Datastore({filename: 'database/process.db', autoload: true});
 
+var DELAY_SEARCHING_ATTEMPT = 30000;
+var DELAY_CINNECTION_ATTEMPT = 60000;
+
 function TaskFP(flowerPowerName) {
 	this.name = flowerPowerName;
 	this.FP = null;
@@ -118,7 +121,7 @@ TaskFP.prototype.search = function(callback) {
 			FlowerPower.stopDiscoverAll(discover);
 			return callback('Not found');
 		}
-	}, 10000);
+	}, DELAY_SEARCHING_ATTEMPT);
 
 	FlowerPower.discoverAll(discover);
 };
@@ -157,7 +160,7 @@ TaskFP.prototype.connect = function(callback) {
 			self.destroy(self.FP);
 			throw (self.FP.name + ': Connection failed');
 		}
-	}, 30000);
+	}, DELAY_CONNECTION_ATTEMPT);
 
 	self.FP.connectAndSetup(function() {
 		return callback(null);
