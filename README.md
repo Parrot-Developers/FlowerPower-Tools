@@ -2,7 +2,7 @@
 usefull scripts / code for Flower Power
 
 
-BLE-cloud-bridge
+[node-flower-power](https://github.com/Parrot-Developers/node-flower-power)
 -----
 *framework / langage* : **nodeJS**
 
