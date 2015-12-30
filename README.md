@@ -2,7 +2,7 @@
 usefull scripts / code for Flower Power
 
 
-[node-flower-power](https://github.com/Parrot-Developers/node-flower-power)
+[node-flower-bridge](https://github.com/Parrot-Developers/node-flower-bridge)
 -----
 *framework / langage* : **nodeJS**
 
