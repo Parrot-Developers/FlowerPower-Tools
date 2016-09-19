@@ -39,7 +39,7 @@ client_id = 'parrottest.fpwebservice@gmail.com'
 client_secret = 'cvSjfnONllkHLymF2gEUL73PPXJiMMcVCd1VtZaIXHSGyhaT'
 
 print("AUTHENTIFICATION")
-req = requests.get('https://apiflowerpower.parrot.com/user/v1/authenticate',
+req = requests.get('https://api-flower-power-pot.parrot.com/user/v1/authenticate',
 data={'grant_type': 'password',
 'username': username,
 'password': password,
@@ -55,7 +55,7 @@ print('Server response: \n {0}'.format(pformat(response)))
 
 
 print("\nGET PROFILE")
-req = requests.get('https://apiflowerpower.parrot.com/user/v4/profile',
+req = requests.get('https://api-flower-power-pot.parrot.com/user/v4/profile',
 headers={'Authorization': 'Bearer ' + access_token})
 response = req.json()
 print('Server response: \n {0}'.format(pformat(response)))
@@ -63,7 +63,7 @@ print('Server response: \n {0}'.format(pformat(response)))
 
 
 print("\nGET VERSION")
-req = requests.get('https://apiflowerpower.parrot.com/user/v1/versions',
+req = requests.get('https://api-flower-power-pot.parrot.com/user/v1/versions',
 headers={'Authorization': 'Bearer ' + access_token})
 response = req.json()
 print('Server response: \n {0}'.format(pformat(response)))
@@ -71,7 +71,7 @@ print('Server response: \n {0}'.format(pformat(response)))
 
 
 print("\nGARDEN LOCATION STATUSES")
-req = requests.get('https://apiflowerpower.parrot.com/sensor_data/v4/garden_locations_status',
+req = requests.get('https://api-flower-power-pot.parrot.com/sensor_data/v4/garden_locations_status',
 headers={'Authorization': 'Bearer ' + access_token})
 response = req.json()
 print('Server response: \n {0}'.format(pformat(response)))
@@ -79,7 +79,7 @@ print('Server response: \n {0}'.format(pformat(response)))
 
 
 print("\nSYNC DATA")
-req = requests.get('https://apiflowerpower.parrot.com/sensor_data/v3/sync',
+req = requests.get('https://api-flower-power-pot.parrot.com/sensor_data/v3/sync',
 headers={'Authorization': 'Bearer ' + access_token},
 params={'include_s3_urls': 1})
 response = req.json()
@@ -93,7 +93,7 @@ print("\nGET SAMPLES FOR LOCATION")
 i = 0
 for i in range(0,len(deco["locations"])):
     location_identifier = deco["locations"][i]["location_identifier"]
-    req = requests.get('https://apiflowerpower.parrot.com/sensor_data/v2/sample/location/' + location_identifier,
+    req = requests.get('https://api-flower-power-pot.parrot.com/sensor_data/v2/sample/location/' + location_identifier,
     headers={'Authorization': 'Bearer ' + access_token},
     params={'from_datetime_utc': '2015-07-04T14:42:42Z',
     'to_datetime_utc': '2015-07-08T06:30:00Z'})

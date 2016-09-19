@@ -3,7 +3,7 @@ import requests
 class ApiCloud:
     """ Flower Power API Cloud """
 
-    url = 'https://apiflowerpower.parrot.com'
+    url = 'https://api-flower-power-pot.parrot.com'
 
     def __init__(self, apiKey, apiSecret):
         self._credentials = {'client_id': apiKey, 'client_secret': apiSecret}
