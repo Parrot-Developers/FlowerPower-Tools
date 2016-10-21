@@ -16,7 +16,7 @@ class ApiCloud:
         options = self._credentials
         options['grant_type'] = 'password'
 
-        req = requests.get(ApiCloud.url + '/user/v1/authenticate', data=options)
+        req = requests.post(ApiCloud.url + '/user/v1/authenticate', data=options)
 
         if (req.status_code == 200):
             self.__logged = True
@@ -33,7 +33,7 @@ class ApiCloud:
         if (not self.__logged):
             return False
 
-        path = '/sensor_data/v3/sync'
+        path = '/garden/v2/configuration'
         req = requests.get(ApiCloud.url + path,
                             headers={'Authorization': 'Bearer ' + self.__token['access_token']},
                             params={'include_s3_urls': 1})
@@ -43,7 +43,7 @@ class ApiCloud:
         if (not self.__logged):
             return False
 
-        path = '/sensor_data/v2/sample/location/' + identifier
+        path = '/sensor_data/v6/sample/location/' + identifier
         req = requests.get(ApiCloud.url + path,
                             headers={'Authorization': 'Bearer ' + self.__token['access_token']},
                             params={'from_datetime_utc': formDateTime, 'to_datetime_utc': toDateTime})
